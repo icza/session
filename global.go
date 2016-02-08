@@ -10,9 +10,10 @@ import (
 	"net/http"
 )
 
-// A global session Manager to which the global functions delegate to.
-// You may replace this and keep using the global functions, but if you intend to do so,
-// you should close it first (e.g. Global.Close()).
+// Global is the default session Manager to which the top-level functions such as Get, Add, Remove and Close
+// are wrappers of Manager.
+// You may replace this and keep using the top-level functions, but if you intend to do so,
+// you should close it first with Global.Close().
 var Global Manager = NewCookieManager(NewMemStore())
 
 // Get delegates to Global.Get(); returns the session specified by the HTTP request.
@@ -21,7 +22,7 @@ func Get(r *http.Request) Session {
 	return Global.Get(r)
 }
 
-// Add delegates to Global.Add90; adds the session to the HTTP response.
+// Add delegates to Global.Add(); adds the session to the HTTP response.
 // This means to let the client know about the specified session by including the sesison id in the response somehow.
 func Add(sess Session, w http.ResponseWriter) {
 	Global.Add(sess, w)
