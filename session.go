@@ -105,7 +105,7 @@ func NewSession() Session {
 func NewSessionOptions(o *SessOptions) Session {
 	now := time.Now()
 	idLength := o.IdLength
-	if idLength == 0 {
+	if idLength <= 0 {
 		idLength = 18
 	}
 	timeout := o.Timeout

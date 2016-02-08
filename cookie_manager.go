@@ -8,6 +8,7 @@ package session
 
 import (
 	"net/http"
+	"time"
 )
 
 // A secure, cookie based session Manager implementation.
@@ -16,7 +17,17 @@ type CookieManager struct {
 	store Store // Backing Store
 }
 
-// TODO CookieMngrOptions
+// CookieMngrOptions defines options that may be passed when creating a new CookieManager.
+// All fields are optional; default value will be used for any field that has the zero value.
+type CookieMngrOptions struct {
+	SessIdCookieName string        // Name of the cookie used for storing the session id; default value is "sessid"
+	CookieHttpsOnly  *bool         // Tells if session ID cookies are to be sent only over HTTPS; default value is true
+	CookieMaxAge     time.Duration // Max age for session ID cookies; default value is 30 days
+	CookiePath       string        // Cookie path to use; default value is the root: "/"
+}
+
+// TODO NewCookieManagerOptions
+// func NewCookieManager(store Store) Manager {}
 
 // NewCookieManager returns a new, cookie based session Manager.
 func NewCookieManager(store Store) Manager {
