@@ -16,6 +16,7 @@ import (
 // A Manager has a backing Store which is responsible to manage Session values at server side.
 type Manager interface {
 	// Get returns the session specified by the HTTP request.
+	// nil is returned if the request does not contain a session, or the contained session is not know by this manager.
 	Get(r *http.Request) Session
 
 	// Add adds the session to the HTTP response.
