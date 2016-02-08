@@ -90,13 +90,13 @@ type SessOptions struct {
 	Timeout time.Duration
 
 	// Byte-length of the information that builds up the session ids.
-	// Using Base-64 encoding id string will be up to this multiplied by 4/3 chars.
-	// Default value is 18.
+	// Using Base-64 encoding, id length will be this multiplied by 4/3 chars.
+	// Default value is 18 (which means length of ID will be 24 chars).
 	IdLength int
 }
 
 // NewSession creates a new Session with the default options.
-// Default options are listed in the SessOptions type.
+// Default values of options are listed in the SessOptions type.
 func NewSession() Session {
 	return NewSessionOptions(&SessOptions{})
 }

@@ -15,34 +15,57 @@ import (
 // Only the session ID is transmitted / stored at the clients, and it is managed using cookies.
 type CookieManager struct {
 	store Store // Backing Store
+
+	sessIdCookieName string // Name of the cookie used for storing the session id
+	cookieSecure     bool   // Tells if session ID cookies are to be sent only over HTTPS
+	cookieMaxAgeSec  int    // Max age for session ID cookies in seconds
+	cookiePath       string // Cookie path to use
 }
 
 // CookieMngrOptions defines options that may be passed when creating a new CookieManager.
 // All fields are optional; default value will be used for any field that has the zero value.
 type CookieMngrOptions struct {
 	SessIdCookieName string        // Name of the cookie used for storing the session id; default value is "sessid"
-	CookieHttpsOnly  *bool         // Tells if session ID cookies are to be sent only over HTTPS; default value is true
+	CookieSecure     *bool         // Tells if session ID cookies are to be sent only over HTTPS (and not over HTTP); default value is true
 	CookieMaxAge     time.Duration // Max age for session ID cookies; default value is 30 days
 	CookiePath       string        // Cookie path to use; default value is the root: "/"
 }
 
-// TODO NewCookieManagerOptions
-// func NewCookieManager(store Store) Manager {}
-
-// NewCookieManager returns a new, cookie based session Manager.
+// NewCookieManager creates a new, cookie based session Manager with default options.
+// Default values of options are listed in the CookieMngrOptions type.
 func NewCookieManager(store Store) Manager {
+	return NewCookieManagerOptions(store, &CookieMngrOptions{})
+}
+
+// NewCookieManagerOptions creates a new, cookie based session Manager with the specified options.
+func NewCookieManagerOptions(store Store, o *CookieMngrOptions) Manager {
 	m := &CookieManager{
-		store: store,
+		store:            store,
+		cookieSecure:     true,
+		sessIdCookieName: o.SessIdCookieName,
+		cookiePath:       o.CookiePath,
+	}
+
+	if m.sessIdCookieName == "" {
+		m.sessIdCookieName = "sessid"
+	}
+	if o.CookieSecure != nil && !*o.CookieSecure {
+		m.cookieSecure = false
+	}
+	if o.CookieMaxAge == 0 {
+		m.cookieMaxAgeSec = 30 * 24 * 60 * 60 // 30 days max age
+	} else {
+		m.cookieMaxAgeSec = int(o.CookieMaxAge.Seconds())
+	}
+	if m.cookiePath == "" {
+		m.cookiePath = "/"
 	}
 
 	return m
 }
 
-// Name of the cookie used for storing the session id
-var SessIdCookieName = "sessid"
-
 func (m *CookieManager) Get(r *http.Request) Session {
-	c, err := r.Cookie(SessIdCookieName)
+	c, err := r.Cookie(m.sessIdCookieName)
 	if err != nil {
 		return nil
 	}
@@ -56,12 +79,12 @@ func (m *CookieManager) Add(sess Session, w http.ResponseWriter) {
 	// MaxAge: to specify the max age of the cookie in seconds, else it's a session cookie and gets deleted after the browser is closed.
 
 	c := http.Cookie{
-		Name:     SessIdCookieName,
+		Name:     m.sessIdCookieName,
 		Value:    sess.Id(),
-		Path:     "/",
+		Path:     m.cookiePath,
 		HttpOnly: true,
-		Secure:   true,
-		MaxAge:   30 * 24 * 60 * 60, // 30 days max age
+		Secure:   m.cookieSecure,
+		MaxAge:   m.cookieMaxAgeSec,
 	}
 	http.SetCookie(w, &c)
 
@@ -71,11 +94,11 @@ func (m *CookieManager) Add(sess Session, w http.ResponseWriter) {
 func (m *CookieManager) Remove(sess Session, w http.ResponseWriter) {
 	// Set the cookie with empty value and 0 max age
 	c := http.Cookie{
-		Name:     SessIdCookieName,
+		Name:     m.sessIdCookieName,
 		Value:    "",
-		Path:     "/",
+		Path:     m.cookiePath,
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   m.cookieSecure,
 		MaxAge:   -1, // MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
 	}
 	http.SetCookie(w, &c)
