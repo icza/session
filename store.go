@@ -17,4 +17,7 @@ type Store interface {
 
 	// Remove removes a session from the store.
 	Remove(sess Session)
+
+	// Close closes the session store, releasing any resources that were allocated.
+	Close()
 }
