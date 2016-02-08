@@ -2,7 +2,9 @@
 
 The [Go](https://golang.org/) standard library includes a nice [http server](https://golang.org/pkg/net/http/), but unfortunately it lacks a very basic and important feature: _HTTP session management_.
 
-This package provides an easy-to-use, extensible and secure session implementation and management.
+This package provides an easy-to-use, extensible and secure session implementation and management. Package documentation can be found and godoc.org:
+
+https://godoc.org/github.com/icza/session
 
 ## Overview
 
