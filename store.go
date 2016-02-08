@@ -1,12 +1,13 @@
 /*
 
-Session store interface.
+Session Store interface.
 
 */
 
 package session
 
 // Store is a session store interface.
+// A session store is responsible to store sessions and make them retievable by their IDs at the server side.
 type Store interface {
 	// Get returns the session specified by its id.
 	// The returned session will have an updated access time (set to the current time).

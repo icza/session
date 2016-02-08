@@ -14,7 +14,8 @@ import (
 	"time"
 )
 
-// Session is the HTTP session interface.
+// Session is the (HTTP) session interface.
+// We can use it to store and retrieve constant and variable attributes from it.
 type Session interface {
 	// Id returns the id of the session.
 	Id() string

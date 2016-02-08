@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-// In-memory session store implementation.
+// In-memory session Store implementation.
 type memStore struct {
 	sessions    map[string]Session // Map of sessions (mapped from ID)
 	mux         *sync.RWMutex      // mutex to synchronize access to sessions
@@ -20,7 +20,7 @@ type memStore struct {
 	closeTicker chan struct{}      // Channel to signal close for the session cleaner
 }
 
-// NewMemStore returns a new, in-memory session store.
+// NewMemStore returns a new, in-memory session Store.
 // The returned Store has an automatic session cleaner which runs
 // in its own goroutine.
 func NewMemStore() Store {
