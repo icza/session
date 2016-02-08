@@ -97,11 +97,11 @@ type SessOptions struct {
 // NewSession creates a new Session with the default options.
 // Default options are listed in the SessOptions type.
 func NewSession() Session {
-	return NewSessionOptions(SessOptions{})
+	return NewSessionOptions(&SessOptions{})
 }
 
 // NewSessionOptions creates a new Session with the specified options.
-func NewSessionOptions(o SessOptions) Session {
+func NewSessionOptions(o *SessOptions) Session {
 	now := time.Now()
 	idLength := o.IdLength
 	if idLength == 0 {
@@ -112,7 +112,7 @@ func NewSessionOptions(o SessOptions) Session {
 		timeout = 30 * time.Minute
 	}
 
-	sess := &sessionImpl{
+	sess := sessionImpl{
 		id:       genId(idLength),
 		created:  now,
 		accessed: now,
@@ -132,10 +132,10 @@ func NewSessionOptions(o SessOptions) Session {
 		sess.attrs[k] = v
 	}
 
-	return sess
+	return &sess
 }
 
-// genId generates a session id.
+// genId generates a secure, random session id using the crypto/rand package.
 func genId(length int) string {
 	r := make([]byte, length)
 	io.ReadFull(rand.Reader, r)

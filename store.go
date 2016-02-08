@@ -9,6 +9,7 @@ package session
 // Store is a session store interface.
 type Store interface {
 	// Get returns the session specified by its id.
+	// The returned session will have an updated access time (set to the current time).
 	Get(id string) Session
 
 	// Add adds a new session to the store.

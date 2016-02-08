@@ -6,28 +6,51 @@ An in-memory session store implementation.
 
 package session
 
+import (
+	"log"
+	"sync"
+)
+
 // In-memory session store implementation.
 type memStore struct {
+	sessions map[string]Session
+	mux      *sync.RWMutex
 }
 
 // NewMemStore returns a new, in-memory session store.
 func NewMemStore() Store {
-	// TODO
-	return nil
+	// TODO session cleaner
+	return &memStore{
+		sessions: make(map[string]Session),
+		mux:      &sync.RWMutex{},
+	}
 }
 
-// Get returns the session specified by its id.
 func (s *memStore) Get(id string) Session {
-	// TODO
-	return nil
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
+	sess := s.sessions[id]
+	if sess == nil {
+		return nil
+	}
+
+	sess.Access()
+	return sess
 }
 
-// Add adds a new session to the store.
 func (s *memStore) Add(sess Session) {
-	// TODO
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	log.Println("Session added:", sess.Id())
+	s.sessions[sess.Id()] = sess
 }
 
-// Remove removes a session from the store.
 func (s *memStore) Remove(sess Session) {
-	// TODO
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	log.Println("Session removed:", sess.Id())
+	delete(s.sessions, sess.Id())
 }
