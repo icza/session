@@ -3,6 +3,9 @@
 Package session provides an easy-to-use, extensible and secure HTTP session implementation and management.
 
 This is "just" an HTTP session implementation and management, you can use it as-is, or with any existing Go web toolkits and frameworks.
+Package documentation can be found and godoc.org:
+
+https://godoc.org/github.com/icza/session
 
 Overview
 
@@ -48,7 +51,7 @@ And to access these attributes and change value of "Count":
 
 To remove a session (e.g. on logout):
 
-    session.Remove(sess)
+    session.Remove(sess, w)
 
 Check out the session demo application which shows all these in action:
 

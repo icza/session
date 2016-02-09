@@ -50,6 +50,6 @@ And to access these attributes and change value of `"Count"`:
 
 To remove a session (e.g. on logout):
 
-    session.Remove(sess)
+    session.Remove(sess, w)
 
 Check out the [session demo application](https://github.com/icza/session/blob/master/session_demo/session_demo.go) which shows all these in action.
