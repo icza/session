@@ -2,6 +2,8 @@
 
 Package session provides an easy-to-use, extensible and secure HTTP session implementation and management.
 
+This is "just" an HTTP session implementation and management, you can use it as-is, or with any existing Go web toolkits and frameworks.
+
 Overview
 
 There are 3 key players in the package:

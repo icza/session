@@ -6,6 +6,8 @@ This package provides an easy-to-use, extensible and secure session implementati
 
 https://godoc.org/github.com/icza/session
 
+This is "just" an HTTP session implementation and management, you can use it as-is, or with any existing Go web toolkits and frameworks.
+
 ## Overview
 
 There are 3 key _players_ in the package:
