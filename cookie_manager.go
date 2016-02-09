@@ -25,10 +25,15 @@ type CookieManager struct {
 // CookieMngrOptions defines options that may be passed when creating a new CookieManager.
 // All fields are optional; default value will be used for any field that has the zero value.
 type CookieMngrOptions struct {
-	SessIdCookieName string        // Name of the cookie used for storing the session id; default value is "sessid"
-	CookieSecure     *bool         // Tells if session ID cookies are to be sent only over HTTPS (and not over HTTP); default value is true
-	CookieMaxAge     time.Duration // Max age for session ID cookies; default value is 30 days
-	CookiePath       string        // Cookie path to use; default value is the root: "/"
+	// Name of the cookie used for storing the session id; default value is "sessid"
+	SessIdCookieName string
+	// Tells if session ID cookies are allowed to be sent over unsecure HTTP too (else only HTTPS);
+	// default value is false (only HTTPS)
+	AllowHTTP bool
+	// Max age for session ID cookies; default value is 30 days
+	CookieMaxAge time.Duration
+	// Cookie path to use; default value is the root: "/"
+	CookiePath string
 }
 
 // NewCookieManager creates a new, cookie based session Manager with default options.
@@ -41,16 +46,13 @@ func NewCookieManager(store Store) Manager {
 func NewCookieManagerOptions(store Store, o *CookieMngrOptions) Manager {
 	m := &CookieManager{
 		store:            store,
-		cookieSecure:     true,
+		cookieSecure:     !o.AllowHTTP,
 		sessIdCookieName: o.SessIdCookieName,
 		cookiePath:       o.CookiePath,
 	}
 
 	if m.sessIdCookieName == "" {
 		m.sessIdCookieName = "sessid"
-	}
-	if o.CookieSecure != nil && !*o.CookieSecure {
-		m.cookieSecure = false
 	}
 	if o.CookieMaxAge == 0 {
 		m.cookieMaxAgeSec = 30 * 24 * 60 * 60 // 30 days max age
