@@ -48,6 +48,8 @@ And to access these attributes and change value of `"Count"`:
     count := sess.Attr("Count").(int) // Type assertion, you might wanna check if it succeeds
     sess.SetAttr("Count", count+1)    // Increment count
 
+(Of course variable attributes can be added later on too with `Session.SetAttr()`, not just at session creation.)
+
 To remove a session (e.g. on logout):
 
     session.Remove(sess, w)
