@@ -26,7 +26,7 @@ Usage can't be simpler than this. To get the current session associated with the
         // We have a session, use it
     }
 
-To create a new session (e.g. on a successful login) and add it to an http.ResponseWriter (let the client know about that):
+To create a new session (e.g. on a successful login) and add it to an http.ResponseWriter (to let the client know about the session):
 
     sess := session.NewSession()
     session.Add(sess, w)
@@ -43,7 +43,8 @@ And to access these attributes and change value of "Count":
     userName := sess.CAttr("UserName")
     count := sess.Attr("Count").(int) // Type assertion, you might wanna check if it succeeds
     sess.SetAttr("Count", count+1)    // Increment count
-To remove a session (e.g. logout):
+
+To remove a session (e.g. on logout):
 
     session.Remove(sess)
 

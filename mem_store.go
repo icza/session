@@ -51,6 +51,8 @@ func (s *memStore) sessCleaner() {
 			// Do a sweep.
 			// Remove is very rare compared to the number of checks, so:
 			// "Quick" check with read-lock to see if there's anything to remove:
+			// Note: Session.Access() is called with s.mux, the same mutex we use
+			// when looking for timed-out sessions, so we're good.
 			needRemove := func() bool {
 				s.mux.RLock() // Read lock is enough
 				defer s.mux.RUnlock()
