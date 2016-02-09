@@ -15,5 +15,29 @@ There are 3 key players in the package:
 Players of this package are represented by interfaces, and various implementations are provided for all these players.
 You are not bound by the provided implementations, feel free to provide your own implementations for any of the players.
 
+Usage
+
+Usage can't be simpler than this. To get the current session associated with the [http.Request](https://golang.org/pkg/net/http/#Request):
+
+    sess := session.Get(r)
+    if sess == nil {
+    	// No session (yet)
+    } else {
+        // We have a session, use it
+    }
+
+To create a new session (e.g. on a successful login) and add it to an [http.ResponseWriter](https://golang.org/pkg/net/http/#ResponseWriter) (let the client know about that):
+
+    sess := session.NewSession()
+    session.Add(sess, w)
+
+To remove a session (e.g. logout):
+
+    session.Remove(sess)
+
+Check out the session demo application which shows all these in action:
+
+https://github.com/icza/session/blob/master/session_demo/session_demo.go
+
 */
 package session
