@@ -66,6 +66,7 @@ func NewCookieManagerOptions(store Store, o *CookieMngrOptions) Manager {
 	return m
 }
 
+// Get is to implement Manager.Get().
 func (m *CookieManager) Get(r *http.Request) Session {
 	c, err := r.Cookie(m.sessIdCookieName)
 	if err != nil {
@@ -75,6 +76,7 @@ func (m *CookieManager) Get(r *http.Request) Session {
 	return m.store.Get(c.Value)
 }
 
+// Add is to implement Manager.Add().
 func (m *CookieManager) Add(sess Session, w http.ResponseWriter) {
 	// HttpOnly: do not allow non-HTTP access to it (like javascript) to prevent stealing it...
 	// Secure: only send it over HTTPS
@@ -93,6 +95,7 @@ func (m *CookieManager) Add(sess Session, w http.ResponseWriter) {
 	m.store.Add(sess)
 }
 
+// Remove is to implement Manager.Remove().
 func (m *CookieManager) Remove(sess Session, w http.ResponseWriter) {
 	// Set the cookie with empty value and 0 max age
 	c := http.Cookie{
@@ -108,6 +111,7 @@ func (m *CookieManager) Remove(sess Session, w http.ResponseWriter) {
 	m.store.Remove(sess)
 }
 
+// Close is to implement Manager.Close().
 func (m *CookieManager) Close() {
 	m.store.Close()
 }

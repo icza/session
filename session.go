@@ -143,18 +143,22 @@ func genId(length int) string {
 	return base64.RawURLEncoding.EncodeToString(r)
 }
 
+// Id is to implement Session.Id().
 func (s *sessionImpl) Id() string {
 	return s.id
 }
 
+// New is to implement Session.New().
 func (s *sessionImpl) New() bool {
 	return s.created == s.accessed
 }
 
+// CAttr is to implement Session.CAttr().
 func (s *sessionImpl) CAttr(name string) interface{} {
 	return s.cattrs[name]
 }
 
+// Attr is to implement Session.Attr().
 func (s *sessionImpl) Attr(name string) interface{} {
 	s.rwMutex.RLock()
 	defer s.rwMutex.RUnlock()
@@ -162,6 +166,7 @@ func (s *sessionImpl) Attr(name string) interface{} {
 	return s.attrs[name]
 }
 
+// SetAttr is to implement Session.SetAttr().
 func (s *sessionImpl) SetAttr(name string, value interface{}) {
 	s.rwMutex.Lock()
 	defer s.rwMutex.Unlock()
@@ -173,6 +178,7 @@ func (s *sessionImpl) SetAttr(name string, value interface{}) {
 	}
 }
 
+// Attrs is to implement Session.Attrs().
 func (s *sessionImpl) Attrs() map[string]interface{} {
 	s.rwMutex.RLock()
 	defer s.rwMutex.RUnlock()
@@ -184,22 +190,27 @@ func (s *sessionImpl) Attrs() map[string]interface{} {
 	return m
 }
 
+// Created is to implement Session.Created().
 func (s *sessionImpl) Created() time.Time {
 	return s.created
 }
 
+// Accessed is to implement Session.Accessed().
 func (s *sessionImpl) Accessed() time.Time {
 	return s.accessed
 }
 
+// Timeout is to implement Session.Timeout().
 func (s *sessionImpl) Timeout() time.Duration {
 	return s.timeout
 }
 
+// RWMutex is to implement Session.RWMutex().
 func (s *sessionImpl) RWMutex() *sync.RWMutex {
 	return s.rwMutex
 }
 
+// Access is to implement Session.Access().
 func (s *sessionImpl) Access() {
 	s.accessed = time.Now()
 }

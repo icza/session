@@ -84,6 +84,7 @@ func (s *memStore) sessCleaner() {
 	}
 }
 
+// Get is to implement Store.Get().
 func (s *memStore) Get(id string) Session {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
@@ -97,6 +98,7 @@ func (s *memStore) Get(id string) Session {
 	return sess
 }
 
+// Add is to implement Store.Add().
 func (s *memStore) Add(sess Session) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
@@ -105,6 +107,7 @@ func (s *memStore) Add(sess Session) {
 	s.sessions[sess.Id()] = sess
 }
 
+// Remove is to implement Store.Remove().
 func (s *memStore) Remove(sess Session) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
@@ -113,6 +116,7 @@ func (s *memStore) Remove(sess Session) {
 	delete(s.sessions, sess.Id())
 }
 
+// Close is to implement Store.Close().
 func (s *memStore) Close() {
 	close(s.closeTicker)
 }
