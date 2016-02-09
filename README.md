@@ -33,6 +33,19 @@ To create a new session (e.g. on a successful login) and add it to an [http.Resp
     sess := session.NewSession()
     session.Add(sess, w)
 
+Let's see a more advanced session creation: let's provide a constant attribute (for the lifetime of the session) and an initial, variable attribute:
+
+    sess := session.NewSessionOptions(&session.SessOptions{
+        CAttrs: map[string]interface{}{"UserName": userName},
+        Attrs:  map[string]interface{}{"Count": 1},
+    })
+
+And to access these attributes and change value of `"Count"`:
+
+    userName := sess.CAttr("UserName")
+    count := sess.Attr("Count").(int) // Type assertion, you might wanna check if it succeeds
+    sess.SetAttr("Count", count+1)    // Increment count
+
 To remove a session (e.g. logout):
 
     session.Remove(sess)

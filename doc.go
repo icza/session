@@ -17,7 +17,7 @@ You are not bound by the provided implementations, feel free to provide your own
 
 Usage
 
-Usage can't be simpler than this. To get the current session associated with the [http.Request](https://golang.org/pkg/net/http/#Request):
+Usage can't be simpler than this. To get the current session associated with the http.Request:
 
     sess := session.Get(r)
     if sess == nil {
@@ -26,11 +26,23 @@ Usage can't be simpler than this. To get the current session associated with the
         // We have a session, use it
     }
 
-To create a new session (e.g. on a successful login) and add it to an [http.ResponseWriter](https://golang.org/pkg/net/http/#ResponseWriter) (let the client know about that):
+To create a new session (e.g. on a successful login) and add it to an http.ResponseWriter (let the client know about that):
 
     sess := session.NewSession()
     session.Add(sess, w)
 
+Let's see a more advanced session creation: let's provide a constant attribute (for the lifetime of the session) and an initial, variable attribute:
+
+    sess := session.NewSessionOptions(&session.SessOptions{
+        CAttrs: map[string]interface{}{"UserName": userName},
+        Attrs:  map[string]interface{}{"Count": 1},
+    })
+
+And to access these attributes and change value of "Count":
+
+    userName := sess.CAttr("UserName")
+    count := sess.Attr("Count").(int) // Type assertion, you might wanna check if it succeeds
+    sess.SetAttr("Count", count+1)    // Increment count
 To remove a session (e.g. logout):
 
     session.Remove(sess)
