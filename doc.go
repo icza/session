@@ -59,7 +59,7 @@ Check out the session demo application which shows all these in action:
 
 https://github.com/icza/session/blob/master/session_demo/session_demo.go
 
-Google AppEngine (GAE) support
+Google AppEngine support
 
 The package provides support for Google AppEngine (GAE) platform.
 
