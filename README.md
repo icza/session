@@ -56,7 +56,7 @@ To remove a session (e.g. on logout):
 
 Check out the [session demo application](https://github.com/icza/session/blob/master/session_demo/session_demo.go) which shows all these in action.
 
-## Google AppEngine (GAE) support
+## Google AppEngine support
 
 The package provides support for Google AppEngine (GAE) platform.
 

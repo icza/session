@@ -51,7 +51,8 @@ type memcacheStore struct {
 // MemcacheStoreOptions defines options that may be passed when creating a new Memcache session store.
 // All fields are optional; default value will be used for any field that has the zero value.
 type MemcacheStoreOptions struct {
-	// Prefix to use when storing sessions in the Memcache; default value is the empty string
+	// Prefix to use when storing sessions in the Memcache, cannot contain a null byte
+	// and cannot be longer than 250 chars (bytes) when concatenated with the session id; default value is the empty string
 	// The Memcache key will be this prefix and the session id concatenated.
 	KeyPrefix string
 
@@ -184,6 +185,7 @@ func (s *memcacheStore) Remove(sess Session) {
 // Close is to implement Store.Close().
 func (s *memcacheStore) Close() {
 	// Flush out sessions that were accessed from this store. No need locking, we're closing...
+	// We could use Cocec.SetMulti(), but sessions will contain at most 1 session like all the times.
 	for _, sess := range s.sessions {
 		s.setMemcacheSession(sess)
 	}
