@@ -53,10 +53,14 @@ type Session interface {
 	// A session may be removed automatically if it is not accessed for this duration.
 	Timeout() time.Duration
 
-	// RWMutex returns the RW mutex of the session.
+	// Mutex returns the RW mutex of the session.
 	// It is used to synchronize access/modification of the state stored in the session.
 	// It can be used if session-level synchronization is required.
-	RWMutex() *sync.RWMutex
+	// Important! If Session values are marshalled / unmarshalled
+	// (e.g. multi server instance environment such as Google AppEngine),
+	// this mutex may be different for each Session value and thus
+	// it can only be used to session-value level synchronization!
+	Mutex() *sync.RWMutex
 
 	// Access registers an access to the session,
 	// updates its last accessed time to the current time.
@@ -73,7 +77,7 @@ type sessionImpl struct {
 	CAttrs_   map[string]interface{} // Constant attributes specified at session creation
 	Attrs_    map[string]interface{} // Attributes stored in the session
 	Timeout_  time.Duration          // Session timeout
-	rwMutex   *sync.RWMutex          // RW mutex to synchronize session state access
+	mux       *sync.RWMutex          // RW mutex to synchronize session state access
 }
 
 // SessOptions defines options that may be passed when creating a new Session.
@@ -121,7 +125,7 @@ func NewSessionOptions(o *SessOptions) Session {
 		Accessed_: now,
 		Attrs_:    make(map[string]interface{}),
 		Timeout_:  timeout,
-		rwMutex:   &sync.RWMutex{},
+		mux:       &sync.RWMutex{},
 	}
 
 	if len(o.CAttrs) > 0 {
@@ -162,16 +166,16 @@ func (s *sessionImpl) CAttr(name string) interface{} {
 
 // Attr is to implement Session.Attr().
 func (s *sessionImpl) Attr(name string) interface{} {
-	s.rwMutex.RLock()
-	defer s.rwMutex.RUnlock()
+	s.mux.RLock()
+	defer s.mux.RUnlock()
 
 	return s.Attrs_[name]
 }
 
 // SetAttr is to implement Session.SetAttr().
 func (s *sessionImpl) SetAttr(name string, value interface{}) {
-	s.rwMutex.Lock()
-	defer s.rwMutex.Unlock()
+	s.mux.Lock()
+	defer s.mux.Unlock()
 
 	if value == nil {
 		delete(s.Attrs_, name)
@@ -182,8 +186,8 @@ func (s *sessionImpl) SetAttr(name string, value interface{}) {
 
 // Attrs is to implement Session.Attrs().
 func (s *sessionImpl) Attrs() map[string]interface{} {
-	s.rwMutex.RLock()
-	defer s.rwMutex.RUnlock()
+	s.mux.RLock()
+	defer s.mux.RUnlock()
 
 	m := make(map[string]interface{}, len(s.Attrs_))
 	for k, v := range s.Attrs_ {
@@ -207,9 +211,9 @@ func (s *sessionImpl) Timeout() time.Duration {
 	return s.Timeout_
 }
 
-// RWMutex is to implement Session.RWMutex().
-func (s *sessionImpl) RWMutex() *sync.RWMutex {
-	return s.rwMutex
+// Mutex is to implement Session.Mutex().
+func (s *sessionImpl) Mutex() *sync.RWMutex {
+	return s.mux
 }
 
 // Access is to implement Session.Access().

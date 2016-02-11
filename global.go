@@ -14,7 +14,7 @@ import (
 // are wrappers of Manager.
 // You may replace this and keep using the top-level functions, but if you intend to do so,
 // you should close it first with Global.Close().
-var Global Manager = NewCookieManager(NewMemStore())
+var Global Manager = NewCookieManager(NewInMemStore())
 
 // Get delegates to Global.Get(); returns the session specified by the HTTP request.
 // nil is returned if the request does not contain a session, or the contained session is not know by this manager.

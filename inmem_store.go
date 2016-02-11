@@ -13,18 +13,18 @@ import (
 )
 
 // In-memory session Store implementation.
-type memStore struct {
+type inMemStore struct {
 	sessions    map[string]Session // Map of sessions (mapped from ID)
 	mux         *sync.RWMutex      // mutex to synchronize access to sessions
 	ticker      *time.Ticker       // Ticker for the session cleaner
 	closeTicker chan struct{}      // Channel to signal close for the session cleaner
 }
 
-// NewMemStore returns a new, in-memory session Store.
+// NewInMemStore returns a new, in-memory session Store.
 // The returned Store has an automatic session cleaner which runs
 // in its own goroutine.
-func NewMemStore() Store {
-	s := &memStore{
+func NewInMemStore() Store {
+	s := &inMemStore{
 		sessions:    make(map[string]Session),
 		mux:         &sync.RWMutex{},
 		closeTicker: make(chan struct{}),
@@ -38,7 +38,7 @@ func NewMemStore() Store {
 // sessCleaner periodically checks whether sessions have timed out
 // in an endless loop. If a session has timed out, removes it.
 // This method is to be started as a new goroutine.
-func (s *memStore) sessCleaner() {
+func (s *inMemStore) sessCleaner() {
 	ticker := time.NewTicker(10 * time.Second)
 
 	for {
@@ -85,7 +85,7 @@ func (s *memStore) sessCleaner() {
 }
 
 // Get is to implement Store.Get().
-func (s *memStore) Get(id string) Session {
+func (s *inMemStore) Get(id string) Session {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
@@ -99,7 +99,7 @@ func (s *memStore) Get(id string) Session {
 }
 
 // Add is to implement Store.Add().
-func (s *memStore) Add(sess Session) {
+func (s *inMemStore) Add(sess Session) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
@@ -108,7 +108,7 @@ func (s *memStore) Add(sess Session) {
 }
 
 // Remove is to implement Store.Remove().
-func (s *memStore) Remove(sess Session) {
+func (s *inMemStore) Remove(sess Session) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
@@ -117,6 +117,6 @@ func (s *memStore) Remove(sess Session) {
 }
 
 // Close is to implement Store.Close().
-func (s *memStore) Close() {
+func (s *inMemStore) Close() {
 	close(s.closeTicker)
 }

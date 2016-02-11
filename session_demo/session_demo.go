@@ -59,7 +59,7 @@ func myHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// For testing purposes, we want cookies to be sent over HTTP too (not just HTTPS):
 	session.Global.Close()
-	session.Global = session.NewCookieManagerOptions(session.NewMemStore(), &session.CookieMngrOptions{AllowHTTP: true})
+	session.Global = session.NewCookieManagerOptions(session.NewInMemStore(), &session.CookieMngrOptions{AllowHTTP: true})
 
 	log.Println("Session demo is about to start. Visit: localhost:8080/demo")
 	http.HandleFunc("/demo", myHandler)
