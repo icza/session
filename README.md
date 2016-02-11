@@ -55,3 +55,17 @@ To remove a session (e.g. on logout):
     session.Remove(sess, w)
 
 Check out the [session demo application](https://github.com/icza/session/blob/master/session_demo/session_demo.go) which shows all these in action.
+
+## AppEngine support
+
+The package provides support for Google AppEngine (GAE) platform.
+
+The documentation doesn't include it (due to the `+build appengine` build constraint), but here it is:
+
+https://github.com/icza/session/blob/master/gae_memcache_store.go
+
+- `NewMemcacheStore()` and `NewMemcacheStoreOptions()`: functions which return a session Store which stores sessions in GAE's Memcache.
+
+Check out the GAE session demo application which shows how it can be used.
+
+https://github.com/icza/session/blob/master/gae_session_demo/gae_session_demo.go
