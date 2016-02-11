@@ -64,13 +64,16 @@ type MemcacheStoreOptions struct {
 	Codec *memcache.Codec
 }
 
+// Pointer to zero value of MemcacheStoreOptions to be reused for efficiency.
+var zeroMemcacheStoreOptions = new(MemcacheStoreOptions)
+
 // NewMemcacheStore returns a new, GAE Memcache session Store with default options.
 // Default values of options are listed in the MemcacheStoreOptions type.
 //
 // Important! Since accessing the Memcache relies on Appengine Context
 // which is bound to an http.Request, the returned Store can only be used for the lifetime of a request!
 func NewMemcacheStore(ctx appengine.Context) Store {
-	return NewMemcacheStoreOptions(ctx, &MemcacheStoreOptions{})
+	return NewMemcacheStoreOptions(ctx, zeroMemcacheStoreOptions)
 }
 
 // NewMemcacheStoreOptions returns a new, GAE Memcache session Store with the specified options.

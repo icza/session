@@ -36,10 +36,13 @@ type CookieMngrOptions struct {
 	CookiePath string
 }
 
+// Pointer to zero value of CookieMngrOptions to be reused for efficiency.
+var zeroCookieMngrOptions = new(CookieMngrOptions)
+
 // NewCookieManager creates a new, cookie based session Manager with default options.
 // Default values of options are listed in the CookieMngrOptions type.
 func NewCookieManager(store Store) Manager {
-	return NewCookieManagerOptions(store, &CookieMngrOptions{})
+	return NewCookieManagerOptions(store, zeroCookieMngrOptions)
 }
 
 // NewCookieManagerOptions creates a new, cookie based session Manager with the specified options.

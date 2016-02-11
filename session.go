@@ -101,10 +101,13 @@ type SessOptions struct {
 	IdLength int
 }
 
+// Pointer to zero value of SessOptions to be reused for efficiency.
+var zeroSessOptions = new(SessOptions)
+
 // NewSession creates a new Session with the default options.
 // Default values of options are listed in the SessOptions type.
 func NewSession() Session {
-	return NewSessionOptions(&SessOptions{})
+	return NewSessionOptions(zeroSessOptions)
 }
 
 // NewSessionOptions creates a new Session with the specified options.
