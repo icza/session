@@ -25,7 +25,7 @@ Usage can't be simpler than this. To get the current session associated with the
 
     sess := session.Get(r)
     if sess == nil {
-    	// No session (yet)
+        // No session (yet)
     } else {
         // We have a session, use it
     }
