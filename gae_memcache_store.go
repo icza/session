@@ -4,8 +4,10 @@
 
 A Google App Engine Memcache session store implementation.
 
-Warning! This imlementation stores sessions only in the Memcache which may lose its content at any time, resulting in losing sessions.
-This may or may not be sufficient for your purposes.
+The implementation stores sessions in the Memcache and also saves sessions to the Datastore as a backup
+in case data would be removed from the Memcache. This behaviour is optional, Datastore can be disabled completely.
+You can also choose whether saving to Datastore happens synchronously (in the same goroutine)
+or asynchronously (in another goroutine). 
 
 Limitations based on GAE Memcache:
 
