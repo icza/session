@@ -30,6 +30,7 @@ import (
 	"appengine"
 	"appengine/memcache"
 	"sync"
+	"time"
 )
 
 // A Google App Engine Memcache session store implementation.
@@ -40,6 +41,10 @@ type memcacheStore struct {
 	retries   int    // Number of retries to perform in case of general Memcache failures
 
 	codec memcache.Codec // Codec used to marshal and unmarshal a Session to a byte slice
+
+	onlyMemcache      bool   // Tells if sessions are not to be saved in Datastore
+	syncDatastoreSave bool   // Tells if saving to Datastore should happen synchronously, in the same goroutine
+	dsEntityName      string // Name of the datastore entity to use to save sessions
 
 	// Map of sessions (mapped from ID) that were accessed using this store; usually it will only be 1.
 	// It is also used as a cache, should the user call Get() with the same id multiple times.
@@ -63,6 +68,31 @@ type MemcacheStoreOptions struct {
 	// Codec used to marshal and unmarshal a Session to a byte slice;
 	// Default value is &memcache.Gob (which uses the gob package).
 	Codec *memcache.Codec
+
+	// Tells if sessions are only to be stored in Memcache, and do not store them in Datastore as backup;
+	// as Memcache has no guarantees, it may lose content from time to time, but if Datastore is
+	// also used, the session will automatically be retrieved from the Datastore if not found in Memcache;
+	// default value is false (which means to also save sessions in the Datastore)
+	OnlyMemcache bool
+
+	// Tells if saving to Datastore should happen synchronously (in the same goroutine, before returning),
+	// if false, session saving to Datastore will happen in the background (in another goroutine)
+	// which gives smaller latency (and is enough most of the times as Memcache is always checked first);
+	// default value is false which means to save sessions to Datastore in the background and return immedately
+	// Not used if OnlyMemcache=true.
+	SyncDatastoreSave bool
+
+	// Name of the entity to use for saving sessions;
+	// default value is "sess_"
+	// Not used if OnlyMemcache=true.
+	DSEntityName string
+}
+
+// SessEntity models the session entity saved to Datastore.
+// The Key is the session id.
+type SessEntity struct {
+	Expires time.Time `datastore:"exp"`
+	Value   []byte    `datastore:"val"`
 }
 
 // Pointer to zero value of MemcacheStoreOptions to be reused for efficiency.
@@ -83,11 +113,14 @@ func NewMemcacheStore(ctx appengine.Context) Store {
 // which is bound to an http.Request, the returned Store can only be used for the lifetime of a request!
 func NewMemcacheStoreOptions(ctx appengine.Context, o *MemcacheStoreOptions) Store {
 	s := &memcacheStore{
-		ctx:       ctx,
-		keyPrefix: o.KeyPrefix,
-		retries:   o.Retries,
-		sessions:  make(map[string]Session, 2),
-		mux:       &sync.RWMutex{},
+		ctx:               ctx,
+		keyPrefix:         o.KeyPrefix,
+		retries:           o.Retries,
+		onlyMemcache:      o.OnlyMemcache,
+		syncDatastoreSave: o.SyncDatastoreSave,
+		dsEntityName:      o.DSEntityName,
+		sessions:          make(map[string]Session, 2),
+		mux:               &sync.RWMutex{},
 	}
 	if s.retries <= 0 {
 		s.retries = 3
@@ -96,6 +129,9 @@ func NewMemcacheStoreOptions(ctx appengine.Context, o *MemcacheStoreOptions) Sto
 		s.codec = *o.Codec
 	} else {
 		s.codec = memcache.Gob
+	}
+	if s.dsEntityName == "" {
+		s.dsEntityName = "sess_"
 	}
 	return s
 }
@@ -113,26 +149,41 @@ func (s *memcacheStore) Get(id string) Session {
 		return sess
 	}
 
+	// Next check in Memcache
 	var err error
-	var sess sessionImpl
+	var sess *sessionImpl
 
 	for i := 0; i < s.retries; i++ {
-		_, err = s.codec.Get(s.ctx, s.keyPrefix+id, &sess)
+		var sess_ sessionImpl
+		_, err = s.codec.Get(s.ctx, s.keyPrefix+id, &sess_)
 		if err == memcache.ErrCacheMiss {
-			return nil
+			break // It's not in the Memcache (e.g. invalid sess id or was removed from Memcache by AppEngine)
 		}
 		if err != nil {
 			// Service error? Retry..
 		}
-		sess.Access()
-		// Mutex is not marshalled, so create a new one:
-		sess.mux = &sync.RWMutex{}
-		s.sessions[id] = &sess
-		return &sess
+		sess = &sess_
 	}
 
-	s.ctx.Errorf("Failed to get session from memcache, id: %s, error: %v", id, err)
-	return nil
+	if sess == nil {
+		// Ok, we didn't get it from Memcace (either was not there or Memcache service is unavailable).
+		// Now it's time to check in the Datastore.
+		for i := 0; i < s.retries; i++ {
+			// TODO
+		}
+	}
+
+	if sess == nil {
+		s.ctx.Errorf("Failed to get session from memcache, id: %s, error: %v", id, err)
+		return nil
+	}
+
+	// Yes! We have it! "Actualize" it.
+	sess.Access()
+	// Mutex is not marshalled, so create a new one:
+	sess.mux = &sync.RWMutex{}
+	s.sessions[id] = sess
+	return sess
 }
 
 // Add is to implement Store.Add().
@@ -189,4 +240,30 @@ func (s *memcacheStore) Close() {
 	for _, sess := range s.sessions {
 		s.setMemcacheSession(sess)
 	}
+
+	if s.onlyMemcache {
+		return // Don't save to Datastore
+	}
+
+	if s.syncDatastoreSave {
+		s.saveToDatastore()
+	} else {
+		go s.saveToDatastore()
+	}
+}
+
+// saveToDatastore saves the sessions of the Store to the Datastore
+// in the caller's goroutine.
+func (s *memcacheStore) saveToDatastore() {
+	// Save sessions that were accessed from this store. No need locking, we're closing...
+	// We could use datastore.PutMulti(), but sessions will contain at most 1 session like all the times.
+	for _, sess := range s.sessions {
+		// TODO
+		_ = sess
+	}
+}
+
+// TODO
+func PurgeExpiredSessionsFromDS() bool {
+	return false
 }

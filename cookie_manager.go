@@ -27,11 +27,14 @@ type CookieManager struct {
 type CookieMngrOptions struct {
 	// Name of the cookie used for storing the session id; default value is "sessid"
 	SessIdCookieName string
+
 	// Tells if session ID cookies are allowed to be sent over unsecure HTTP too (else only HTTPS);
 	// default value is false (only HTTPS)
 	AllowHTTP bool
+
 	// Max age for session ID cookies; default value is 30 days
 	CookieMaxAge time.Duration
+
 	// Cookie path to use; default value is the root: "/"
 	CookiePath string
 }
