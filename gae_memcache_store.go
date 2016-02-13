@@ -28,6 +28,7 @@ package session
 
 import (
 	"appengine"
+	"appengine/datastore"
 	"appengine/memcache"
 	"sync"
 	"time"
@@ -159,22 +160,47 @@ func (s *memcacheStore) Get(id string) Session {
 		if err == memcache.ErrCacheMiss {
 			break // It's not in the Memcache (e.g. invalid sess id or was removed from Memcache by AppEngine)
 		}
-		if err != nil {
-			// Service error? Retry..
+		if err == nil {
+			sess = &sess_
+			break
 		}
-		sess = &sess_
+		// Service error? Retry..
 	}
 
 	if sess == nil {
+		if err != nil && err != memcache.ErrCacheMiss {
+			s.ctx.Errorf("Failed to get session from memcache, id: %s, error: %v", id, err)
+		}
+
 		// Ok, we didn't get it from Memcace (either was not there or Memcache service is unavailable).
 		// Now it's time to check in the Datastore.
+		key := datastore.NewKey(s.ctx, s.dsEntityName, id, 0, nil)
 		for i := 0; i < s.retries; i++ {
-			// TODO
+			e := SessEntity{}
+			err = datastore.Get(s.ctx, key, &e)
+			if err == datastore.ErrNoSuchEntity {
+				return nil // It's not in the Datastore either
+			}
+			if err != nil {
+				// Service error? Retry..
+				continue
+			}
+			if e.Expires.After(time.Now()) {
+				// Session expired.
+				datastore.Delete(s.ctx, key) // Omitting error check...
+				return nil
+			}
+			var sess_ sessionImpl
+			if err = s.codec.Unmarshal(e.Value, &sess_); err != nil {
+				break // Invalid data in stored session entity...
+			}
+			sess = &sess_
+			break
 		}
 	}
 
 	if sess == nil {
-		s.ctx.Errorf("Failed to get session from memcache, id: %s, error: %v", id, err)
+		s.ctx.Errorf("Failed to get session from datastore, id: %s, error: %v", id, err)
 		return nil
 	}
 
@@ -227,6 +253,11 @@ func (s *memcacheStore) Remove(sess Session) {
 		if err = memcache.Delete(s.ctx, s.keyPrefix+sess.Id()); err == nil || err == memcache.ErrCacheMiss {
 			s.ctx.Infof("Session removed: %s", sess.Id())
 			delete(s.sessions, sess.Id())
+			if !s.onlyMemcache {
+				// Also from the Datastore:
+				key := datastore.NewKey(s.ctx, s.dsEntityName, sess.Id(), 0, nil)
+				datastore.Delete(s.ctx, key) // Omitting error check...
+			}
 			return
 		}
 	}
@@ -258,8 +289,24 @@ func (s *memcacheStore) saveToDatastore() {
 	// Save sessions that were accessed from this store. No need locking, we're closing...
 	// We could use datastore.PutMulti(), but sessions will contain at most 1 session like all the times.
 	for _, sess := range s.sessions {
-		// TODO
-		_ = sess
+		value, err := s.codec.Marshal(sess)
+		if err != nil {
+			s.ctx.Errorf("Failed to marshal session: %s, error: %v", sess.Id(), err)
+			continue
+		}
+		e := SessEntity{
+			Expires: sess.Accessed().Add(sess.Timeout()),
+			Value:   value,
+		}
+		key := datastore.NewKey(s.ctx, s.dsEntityName, sess.Id(), 0, nil)
+		for i := 0; i < s.retries; i++ {
+			if _, err = datastore.Put(s.ctx, key, &e); err == nil {
+				break
+			}
+		}
+		if err != nil {
+			s.ctx.Errorf("Failed to save session to datastore: %s, error: %v", sess.Id(), err)
+		}
 	}
 }
 
