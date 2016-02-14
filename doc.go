@@ -59,9 +59,9 @@ Check out the session demo application which shows all these in action:
 
 https://github.com/icza/session/blob/master/session_demo/session_demo.go
 
-Google AppEngine support
+Google App Engine support
 
-The package provides support for Google AppEngine (GAE) platform.
+The package provides support for Google App Engine (GAE) platform.
 
 The documentation doesn't include it (due to the '+build appengine' build constraint), but here it is:
 
@@ -84,7 +84,7 @@ to do session-related tasks, something like this:
 
     ctx := appengine.NewContext(r)
     sessmgr := session.NewCookieManager(session.NewMemcacheStore(ctx))
-    defer sessmgr.Close() // Note the Close(): it will ensure changes made to the session are auto-saved in Memcache.
+    defer sessmgr.Close() // This will ensure changes made to the session are auto-saved in Memcache.
     
     sess := sessmgr.Get(r) // Get current session
     if sess != nil {
