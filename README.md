@@ -79,7 +79,8 @@ to do session-related tasks, something like this:
 
     ctx := appengine.NewContext(r)
     sessmgr := session.NewCookieManager(session.NewMemcacheStore(ctx))
-    defer sessmgr.Close() // This will ensure changes made to the session are auto-saved in Memcache.
+    defer sessmgr.Close() // This will ensure changes made to the session are auto-saved
+                          // in Memcache (and optionally in the Datastore).
     
     sess := sessmgr.Get(r) // Get current session
     if sess != nil {
