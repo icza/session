@@ -97,7 +97,18 @@ to do session-related tasks, something like this:
         sessmgr.Add(sess, w)
     }
 
+Expired sessions are not automatically removed from the Datastore. To remove expired sessions, the package
+provides a PurgeExpiredSessFromDSFunc() function which returns an http.HandlerFunc.
+It is recommended to register the returned handler function to a path which then can be defined
+as a cron job to be called periodically, e.g. in every 30 minutes or so (your choice).
+As cron handlers may run up to 10 minutes, the returned handler will stop at 8 minutes
+to complete safely even if there are more expired, undeleted sessions.
+It can be registered like this:
+
+    http.HandleFunc("/demo/purge", session.PurgeExpiredSessFromDSFunc(""))
+
 Check out the GAE session demo application which shows how it can be used.
+cron.yaml file of the demo shows how a cron job can be defined to purge expired sessions.
 
 https://github.com/icza/session/blob/master/gae_session_demo/gae_session_demo.go
 

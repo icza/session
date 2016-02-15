@@ -317,12 +317,13 @@ func (s *memcacheStore) saveToDatastore() {
 
 // PurgeExpiredSessFromDSFunc returns a request handler function which deletes expired sessions
 // from the Datastore.
-// dsEntityName is the name of the entity to use for saving sessions; pass an empty string
+// dsEntityName is the name of the entity used for saving sessions; pass an empty string
 // to use the default value (which is "sess_").
 //
-// It is recommended to register the returned function to a path which then can be defined
-// as a cron job to be called periodically, e.g. in ever 30 minutes or so (your choice).
-// As cron handlers may run up to 10 minutes, the returned handler will stop at 8 minutes to complete safely.
+// It is recommended to register the returned handler function to a path which then can be defined
+// as a cron job to be called periodically, e.g. in every 30 minutes or so (your choice).
+// As cron handlers may run up to 10 minutes, the returned handler will stop at 8 minutes
+// to complete safely even if there are more expired, undeleted sessions.
 //
 // The response of the handler func is a JSON text telling if the handler was able to delete all expired sessions,
 // or that it was finished early due to the time. Examle of a respone where all expired sessions were deleted:
