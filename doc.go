@@ -70,7 +70,7 @@ https://github.com/icza/session/blob/master/gae_memcache_store.go
 The implementation stores sessions in the Memcache and also saves sessions to the Datastore as a backup
 in case data would be removed from the Memcache. This behaviour is optional, Datastore can be disabled completely.
 You can also choose whether saving to Datastore happens synchronously (in the same goroutine)
-or asynchronously (in another goroutine). 
+or asynchronously (in another goroutine), resulting in faster response times.
 
 We can use NewMemcacheStore() and NewMemcacheStoreOptions() functions to create a session Store implementation
 which stores sessions in GAE's Memcache. Important to note that since accessing the Memcache relies on

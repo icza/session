@@ -339,7 +339,7 @@ func PurgeExpiredSessFromDSFunc(dsEntityName string) http.HandlerFunc {
 		// Delete in batches of 100
 		q := datastore.NewQuery(dsEntityName).Filter("exp<", time.Now()).KeysOnly().Limit(100)
 
-		timeout := time.After(time.Minute * 8)
+		deadline := time.Now().Add(time.Minute * 8)
 
 		for {
 			var err error
@@ -361,15 +361,13 @@ func PurgeExpiredSessFromDSFunc(dsEntityName string) http.HandlerFunc {
 				c.Errorf("Error while deleting expired sessions: %v", err)
 			}
 
-			select {
-			case <-timeout:
+			if time.Now().After(deadline) {
 				// Our time is up, return
 				w.Header().Set("Content-Type", "application/json")
 				w.Write([]byte(`{"completed":false}`))
 				return
-			default:
-				// We have time to continue
 			}
+			// We have time to continue
 		}
 	}
 }
