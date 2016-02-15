@@ -21,6 +21,7 @@ import (
 func init() {
 	log.Println("Session demo is about to start. Visit: localhost:8080/demo")
 	http.HandleFunc("/demo", myHandler)
+	http.HandleFunc("/demo/purge", session.PurgeExpiredSessFromDSFunc(""))
 }
 
 var templ = template.Must(template.New("").Parse(page))

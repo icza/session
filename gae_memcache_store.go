@@ -7,7 +7,7 @@ A Google App Engine Memcache session store implementation.
 The implementation stores sessions in the Memcache and also saves sessions to the Datastore as a backup
 in case data would be removed from the Memcache. This behaviour is optional, Datastore can be disabled completely.
 You can also choose whether saving to Datastore happens synchronously (in the same goroutine)
-or asynchronously (in another goroutine). 
+or asynchronously (in another goroutine).
 
 Limitations based on GAE Memcache:
 
@@ -32,6 +32,7 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"appengine/memcache"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -110,6 +111,8 @@ func NewMemcacheStore(ctx appengine.Context) Store {
 	return NewMemcacheStoreOptions(ctx, zeroMemcacheStoreOptions)
 }
 
+const defaultDSEntityName = "sess_" // Default value of DSEntityName.
+
 // NewMemcacheStoreOptions returns a new, GAE Memcache session Store with the specified options.
 //
 // Important! Since accessing the Memcache relies on Appengine Context
@@ -134,7 +137,7 @@ func NewMemcacheStoreOptions(ctx appengine.Context, o *MemcacheStoreOptions) Sto
 		s.codec = memcache.Gob
 	}
 	if s.dsEntityName == "" {
-		s.dsEntityName = "sess_"
+		s.dsEntityName = defaultDSEntityName
 	}
 	return s
 }
@@ -312,7 +315,60 @@ func (s *memcacheStore) saveToDatastore() {
 	}
 }
 
-// TODO
-func PurgeExpiredSessionsFromDS() bool {
-	return false
+// PurgeExpiredSessFromDSFunc returns a request handler function which deletes expired sessions
+// from the Datastore.
+// dsEntityName is the name of the entity to use for saving sessions; pass an empty string
+// to use the default value (which is "sess_").
+//
+// It is recommended to register the returned function to a path which then can be defined
+// as a cron job to be called periodically, e.g. in ever 30 minutes or so (your choice).
+// As cron handlers may run up to 10 minutes, the returned handler will stop at 8 minutes to complete safely.
+//
+// The response of the handler func is a JSON text telling if the handler was able to delete all expired sessions,
+// or that it was finished early due to the time. Examle of a respone where all expired sessions were deleted:
+//
+//     {"completed":true}
+func PurgeExpiredSessFromDSFunc(dsEntityName string) http.HandlerFunc {
+	if dsEntityName == "" {
+		dsEntityName = defaultDSEntityName
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		c := appengine.NewContext(r)
+		// Delete in batches of 100
+		q := datastore.NewQuery(dsEntityName).Filter("exp<", time.Now()).KeysOnly().Limit(100)
+
+		timeout := time.After(time.Minute * 8)
+
+		for {
+			var err error
+			var keys []*datastore.Key
+
+			if keys, err = q.GetAll(c, nil); err != nil {
+				// Datastore error.
+				c.Errorf("Failed to query expired sessions: %v", err)
+				http.Error(w, "Failed to query expired sessions!", http.StatusInternalServerError)
+			}
+			if len(keys) == 0 {
+				// We're done, no more expired sessions
+				w.Header().Set("Content-Type", "application/json")
+				w.Write([]byte(`{"completed":true}`))
+				return
+			}
+
+			if err = datastore.DeleteMulti(c, keys); err != nil {
+				c.Errorf("Error while deleting expired sessions: %v", err)
+			}
+
+			select {
+			case <-timeout:
+				// Our time is up, return
+				w.Header().Set("Content-Type", "application/json")
+				w.Write([]byte(`{"completed":false}`))
+				return
+			default:
+				// We have time to continue
+			}
+		}
+	}
 }
