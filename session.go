@@ -71,12 +71,12 @@ type Session interface {
 // Session implementation.
 // Fields are exported so a session may be marshalled / unmarshalled.
 type sessionImpl struct {
-	Id_       string                 // Id of the session
-	Created_  time.Time              // Creation time
-	Accessed_ time.Time              // Last accessed time
-	CAttrs_   map[string]interface{} // Constant attributes specified at session creation
-	Attrs_    map[string]interface{} // Attributes stored in the session
-	Timeout_  time.Duration          // Session timeout
+	IdF       string                 // Id of the session
+	CreatedF  time.Time              // Creation time
+	AccessedF time.Time              // Last accessed time
+	CAttrsF   map[string]interface{} // Constant attributes specified at session creation
+	AttrsF    map[string]interface{} // Attributes stored in the session
+	TimeoutF  time.Duration          // Session timeout
 	mux       *sync.RWMutex          // RW mutex to synchronize session state access
 }
 
@@ -123,23 +123,23 @@ func NewSessionOptions(o *SessOptions) Session {
 	}
 
 	sess := sessionImpl{
-		Id_:       genId(idLength),
-		Created_:  now,
-		Accessed_: now,
-		Attrs_:    make(map[string]interface{}),
-		Timeout_:  timeout,
+		IdF:       genId(idLength),
+		CreatedF:  now,
+		AccessedF: now,
+		AttrsF:    make(map[string]interface{}),
+		TimeoutF:  timeout,
 		mux:       &sync.RWMutex{},
 	}
 
 	if len(o.CAttrs) > 0 {
-		sess.CAttrs_ = make(map[string]interface{}, len(o.CAttrs))
+		sess.CAttrsF = make(map[string]interface{}, len(o.CAttrs))
 		for k, v := range o.CAttrs {
-			sess.CAttrs_[k] = v
+			sess.CAttrsF[k] = v
 		}
 	}
 
 	for k, v := range o.Attrs {
-		sess.Attrs_[k] = v
+		sess.AttrsF[k] = v
 	}
 
 	return &sess
@@ -154,17 +154,17 @@ func genId(length int) string {
 
 // Id is to implement Session.Id().
 func (s *sessionImpl) Id() string {
-	return s.Id_
+	return s.IdF
 }
 
 // New is to implement Session.New().
 func (s *sessionImpl) New() bool {
-	return s.Created_ == s.Accessed_
+	return s.CreatedF == s.AccessedF
 }
 
 // CAttr is to implement Session.CAttr().
 func (s *sessionImpl) CAttr(name string) interface{} {
-	return s.CAttrs_[name]
+	return s.CAttrsF[name]
 }
 
 // Attr is to implement Session.Attr().
@@ -172,7 +172,7 @@ func (s *sessionImpl) Attr(name string) interface{} {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
-	return s.Attrs_[name]
+	return s.AttrsF[name]
 }
 
 // SetAttr is to implement Session.SetAttr().
@@ -181,9 +181,9 @@ func (s *sessionImpl) SetAttr(name string, value interface{}) {
 	defer s.mux.Unlock()
 
 	if value == nil {
-		delete(s.Attrs_, name)
+		delete(s.AttrsF, name)
 	} else {
-		s.Attrs_[name] = value
+		s.AttrsF[name] = value
 	}
 }
 
@@ -192,8 +192,8 @@ func (s *sessionImpl) Attrs() map[string]interface{} {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
-	m := make(map[string]interface{}, len(s.Attrs_))
-	for k, v := range s.Attrs_ {
+	m := make(map[string]interface{}, len(s.AttrsF))
+	for k, v := range s.AttrsF {
 		m[k] = v
 	}
 	return m
@@ -201,17 +201,17 @@ func (s *sessionImpl) Attrs() map[string]interface{} {
 
 // Created is to implement Session.Created().
 func (s *sessionImpl) Created() time.Time {
-	return s.Created_
+	return s.CreatedF
 }
 
 // Accessed is to implement Session.Accessed().
 func (s *sessionImpl) Accessed() time.Time {
-	return s.Accessed_
+	return s.AccessedF
 }
 
 // Timeout is to implement Session.Timeout().
 func (s *sessionImpl) Timeout() time.Duration {
-	return s.Timeout_
+	return s.TimeoutF
 }
 
 // Mutex is to implement Session.Mutex().
@@ -221,5 +221,5 @@ func (s *sessionImpl) Mutex() *sync.RWMutex {
 
 // Access is to implement Session.Access().
 func (s *sessionImpl) Access() {
-	s.Accessed_ = time.Now()
+	s.AccessedF = time.Now()
 }

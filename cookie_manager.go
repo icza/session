@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// A secure, cookie based session Manager implementation.
+// CookieManager is a secure, cookie based session Manager implementation.
 // Only the session ID is transmitted / stored at the clients, and it is managed using cookies.
 type CookieManager struct {
 	store Store // Backing Store
