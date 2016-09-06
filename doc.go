@@ -86,7 +86,7 @@ to do session-related tasks, something like this:
     sessmgr := session.NewCookieManager(session.NewMemcacheStore(ctx))
     defer sessmgr.Close() // This will ensure changes made to the session are auto-saved
                           // in Memcache (and optionally in the Datastore).
-    
+
     sess := sessmgr.Get(r) // Get current session
     if sess != nil {
         // Session exists, do something with it.
