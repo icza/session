@@ -30,18 +30,18 @@ func (m myt) neq(v1, v2 interface{}) {
 
 func TestNew(t *testing.T) {
 	mt := myt{t}
-	eq := mt.eq
+	eq, neq := mt.eq, mt.neq
 	ss := []Session{NewSession(), NewSessionOptions(&SessOptions{})}
 
 	for _, s := range ss {
-		si := s.(*sessionImpl)
-		eq(true, si.New())
-		eq(si.Accessed(), si.Created())
-		eq(0, len(si.Attrs()))
+		eq(true, s.New())
+		eq(s.Accessed(), s.Created())
+		eq(0, len(s.Attrs()))
+		neq(nil, s.Mutex())
 
 		time.Sleep(10 * time.Millisecond)
-		si.Access()
-		mt.neq(si.Accessed(), si.Created())
+		s.Access()
+		neq(s.Accessed(), s.Created())
 	}
 }
 
