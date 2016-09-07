@@ -1,52 +1,87 @@
 package session
 
 import (
+	"encoding/base64"
+	"reflect"
+	"runtime"
 	"testing"
 	"time"
 )
 
+type myt struct {
+	*testing.T
+}
+
+// eq checks if exp and got are equal, and if not, reports it as an error.
+func (m myt) eq(exp, got interface{}) {
+	if exp != got {
+		_, file, line, _ := runtime.Caller(1)
+		m.T.Errorf("[%s:%d] Expected: %v, got: %v", file, line, exp, got)
+	}
+}
+
+// neq checks if v1 and v2 are not equal, and if they are, reports it as an error.
+func (m myt) neq(v1, v2 interface{}) {
+	if v1 == v2 {
+		_, file, line, _ := runtime.Caller(1)
+		m.T.Errorf("[%s:%d] Expected mismatch: %v, got: %v", file, line, v1, v2)
+	}
+}
+
 func TestNew(t *testing.T) {
+	mt := myt{t}
+	eq := mt.eq
 	ss := []Session{NewSession(), NewSessionOptions(&SessOptions{})}
 
 	for _, s := range ss {
 		si := s.(*sessionImpl)
-		if !si.New() {
-			t.Errorf("Session should be new!")
-		}
-		if si.Created() != si.Accessed() {
-			t.Errorf("Created should be equal to Accessed for new sessions!")
-		}
-		if as := si.Attrs(); len(as) != 0 {
-			t.Errorf("New session should have no attrs: %v", as)
-		}
+		eq(true, si.New())
+		eq(si.Accessed(), si.Created())
+		eq(0, len(si.Attrs()))
 
 		time.Sleep(10 * time.Millisecond)
 		si.Access()
-		if si.Created() == si.Accessed() {
-			t.Errorf("Created should not be equal to Accessed for non-new sessions!")
-		}
+		mt.neq(si.Accessed(), si.Created())
 	}
 }
 
 func TestAttrs(t *testing.T) {
+	mt := myt{t}
+	eq := mt.eq
 	s := NewSession()
 
-	if v := s.Attr("a"); v != nil {
-		t.Errorf("Expected: %v, got: %v", nil, v)
-	}
+	eq(nil, s.Attr("a"))
 	s.SetAttr("a", 1)
-	if v := s.Attr("a"); v != 1 {
-		t.Errorf("Expected: %v, got: %v", 1, v)
-	}
-	if v := len(s.Attrs()); v != 1 {
-		t.Errorf("Expected: %v, got: %v", 1, v)
-	}
+	eq(1, s.Attr("a"))
+	eq(1, len(s.Attrs()))
 
 	s.SetAttr("a", nil)
-	if v := s.Attr("a"); v != nil {
-		t.Errorf("Expected: %v, got: %v", nil, v)
+	eq(nil, s.Attr("a"))
+	eq(0, len(s.Attrs()))
+}
+
+func TestSessOptions(t *testing.T) {
+	mt := myt{t}
+	eq := mt.eq
+
+	so := &SessOptions{
+		Attrs:    map[string]interface{}{"a": 1},
+		CAttrs:   map[string]interface{}{"ca": 2},
+		IdLength: 9,
+		Timeout:  43 * time.Minute,
 	}
-	if v := len(s.Attrs()); v != 0 {
-		t.Errorf("Expected: %v, got: %v", 1, v)
+
+	s := NewSessionOptions(so)
+
+	eq(true, reflect.DeepEqual(s.Attrs(), so.Attrs))
+
+	for k, v := range so.CAttrs {
+		eq(v, s.CAttr(k))
 	}
+
+	data, err := base64.URLEncoding.DecodeString(s.Id())
+	eq(nil, err)
+	eq(so.IdLength, len(data))
+
+	eq(so.Timeout, s.Timeout())
 }
