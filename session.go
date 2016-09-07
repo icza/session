@@ -83,7 +83,7 @@ type sessionImpl struct {
 // SessOptions defines options that may be passed when creating a new Session.
 // All fields are optional; default value will be used for any field that has the zero value.
 type SessOptions struct {
-	// Constant attributes of the session. These will available via the Session.CAttr() method, without synchronization.
+	// Constant attributes of the session. These be will available via the Session.CAttr() method, without synchronization.
 	// Values from the map will be copied, and will be available via Session.CAttr().
 	CAttrs map[string]interface{}
 
