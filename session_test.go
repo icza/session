@@ -2,35 +2,14 @@ package session
 
 import (
 	"encoding/base64"
+	"github.com/icza/mighty"
 	"reflect"
-	"runtime"
 	"testing"
 	"time"
 )
 
-type myt struct {
-	*testing.T
-}
-
-// eq checks if exp and got are equal, and if not, reports it as an error.
-func (m myt) eq(exp, got interface{}) {
-	if exp != got {
-		_, file, line, _ := runtime.Caller(1)
-		m.T.Errorf("[%s:%d] Expected: %v, got: %v", file, line, exp, got)
-	}
-}
-
-// neq checks if v1 and v2 are not equal, and if they are, reports it as an error.
-func (m myt) neq(v1, v2 interface{}) {
-	if v1 == v2 {
-		_, file, line, _ := runtime.Caller(1)
-		m.T.Errorf("[%s:%d] Expected mismatch: %v, got: %v", file, line, v1, v2)
-	}
-}
-
 func TestNewSession(t *testing.T) {
-	mt := myt{t}
-	eq, neq := mt.eq, mt.neq
+	eq, neq := mighty.EqNeq(t)
 	ss := []Session{NewSession(), NewSessionOptions(&SessOptions{})}
 
 	for _, s := range ss {
@@ -46,8 +25,7 @@ func TestNewSession(t *testing.T) {
 }
 
 func TestSessionAttrs(t *testing.T) {
-	mt := myt{t}
-	eq := mt.eq
+	eq := mighty.Eq(t)
 	s := NewSession()
 
 	eq(nil, s.Attr("a"))
@@ -61,8 +39,7 @@ func TestSessionAttrs(t *testing.T) {
 }
 
 func TestSessOptions(t *testing.T) {
-	mt := myt{t}
-	eq := mt.eq
+	eq := mighty.Eq(t)
 
 	so := &SessOptions{
 		Attrs:    map[string]interface{}{"a": 1},

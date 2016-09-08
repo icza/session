@@ -1,6 +1,7 @@
 package session
 
 import (
+	"github.com/icza/mighty"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
@@ -27,8 +28,7 @@ func globalHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestGlobal(t *testing.T) {
-	mt := myt{t}
-	eq := mt.eq
+	eq := mighty.Eq(t)
 
 	Global.Close()
 	Global = NewCookieManagerOptions(NewInMemStore(),

@@ -1,13 +1,13 @@
 package session
 
 import (
+	"github.com/icza/mighty"
 	"testing"
 	"time"
 )
 
 func TestInMemStore(t *testing.T) {
-	mt := myt{t}
-	eq, neq := mt.eq, mt.neq
+	eq, neq := mighty.EqNeq(t)
 
 	st := NewInMemStore()
 	defer st.Close()
@@ -25,8 +25,7 @@ func TestInMemStore(t *testing.T) {
 }
 
 func TestInMemStoreSessCleaner(t *testing.T) {
-	mt := myt{t}
-	eq := mt.eq
+	eq := mighty.Eq(t)
 
 	st := NewInMemStoreOptions(&InMemStoreOptions{SessCleanerInterval: 10 * time.Millisecond})
 	defer st.Close()
