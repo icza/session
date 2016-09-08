@@ -10,6 +10,7 @@ func TestInMemStore(t *testing.T) {
 	eq, neq := mt.eq, mt.neq
 
 	st := NewInMemStore()
+	defer st.Close()
 
 	eq(nil, st.Get("asdf"))
 
@@ -21,4 +22,8 @@ func TestInMemStore(t *testing.T) {
 
 	st.Remove(s)
 	eq(nil, st.Get(s.Id()))
+}
+
+func TestInMemStoreSessCleaner(t *testing.T) {
+
 }

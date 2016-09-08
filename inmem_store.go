@@ -20,17 +20,40 @@ type inMemStore struct {
 	closeTicker chan struct{}      // Channel to signal close for the session cleaner
 }
 
-// NewInMemStore returns a new, in-memory session Store.
+// InMemStoreOptions defines options that may be passed when creating a new in-memory Store.
+// All fields are optional; default value will be used for any field that has the zero value.
+type InMemStoreOptions struct {
+	// Session cleaner check interval, default is 10 seconds.
+	SessCleanerInterval time.Duration
+}
+
+// Pointer to zero value of InMemStoreOptions to be reused for efficiency.
+var zeroInMemStoreOptions = new(InMemStoreOptions)
+
+// NewInMemStore returns a new, in-memory session Store with the default options.
+// Default values of options are listed in the InMemStoreOptions type.
 // The returned Store has an automatic session cleaner which runs
 // in its own goroutine.
 func NewInMemStore() Store {
+	return NewInMemStoreOptions(zeroInMemStoreOptions)
+}
+
+// NewInMemStore returns a new, in-memory session Store with the specified options.
+// The returned Store has an automatic session cleaner which runs
+// in its own goroutine.
+func NewInMemStoreOptions(o *InMemStoreOptions) Store {
 	s := &inMemStore{
 		sessions:    make(map[string]Session),
 		mux:         &sync.RWMutex{},
 		closeTicker: make(chan struct{}),
 	}
 
-	go s.sessCleaner()
+	interval := o.SessCleanerInterval
+	if interval == 0 {
+		interval = 10 * time.Second
+	}
+
+	go s.sessCleaner(interval)
 
 	return s
 }
@@ -38,8 +61,8 @@ func NewInMemStore() Store {
 // sessCleaner periodically checks whether sessions have timed out
 // in an endless loop. If a session has timed out, removes it.
 // This method is to be started as a new goroutine.
-func (s *inMemStore) sessCleaner() {
-	ticker := time.NewTicker(10 * time.Second)
+func (s *inMemStore) sessCleaner(interval time.Duration) {
+	ticker := time.NewTicker(interval)
 
 	for {
 		select {

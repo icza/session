@@ -92,7 +92,7 @@ type SessOptions struct {
 	// and may be changed with Session.SetAttr().
 	Attrs map[string]interface{}
 
-	// Session timeout, default is 30 minutes
+	// Session timeout, default is 30 minutes.
 	Timeout time.Duration
 
 	// Byte-length of the information that builds up the session ids.
