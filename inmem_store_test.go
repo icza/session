@@ -28,16 +28,16 @@ func TestInMemStoreSessCleaner(t *testing.T) {
 	mt := myt{t}
 	eq := mt.eq
 
-	st := NewInMemStoreOptions(&InMemStoreOptions{SessCleanerInterval: 20 * time.Millisecond})
+	st := NewInMemStoreOptions(&InMemStoreOptions{SessCleanerInterval: 10 * time.Millisecond})
 	defer st.Close()
 
-	s := NewSessionOptions(&SessOptions{Timeout: 60 * time.Millisecond})
+	s := NewSessionOptions(&SessOptions{Timeout: 50 * time.Millisecond})
 	st.Add(s)
 	eq(s, st.Get(s.Id()))
 
-	time.Sleep(40 * time.Millisecond)
+	time.Sleep(30 * time.Millisecond)
 	eq(s, st.Get(s.Id()))
 
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(80 * time.Millisecond)
 	eq(nil, st.Get(s.Id()))
 }
