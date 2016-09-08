@@ -1,6 +1,6 @@
 # Session
 
-[![GoDoc](https://godoc.org/github.com/icza/session?status.svg)](https://godoc.org/github.com/icza/session) [![Go Report Card](https://goreportcard.com/badge/github.com/icza/session)](https://goreportcard.com/report/github.com/icza/session)
+[![GoDoc](https://godoc.org/github.com/icza/session?status.svg)](https://godoc.org/github.com/icza/session) [![Go Report Card](https://goreportcard.com/badge/github.com/icza/session)](https://goreportcard.com/report/github.com/icza/session) [![Code Coverage](https://gocover.io/_badge/github.com/icza/session)](https://gocover.io/github.com/icza/session)
 
 The [Go](https://golang.org/) standard library includes a nice [http server](https://golang.org/pkg/net/http/), but unfortunately it lacks a very basic and important feature: _HTTP session management_.
 

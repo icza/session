@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"time"
 )
 
 func globalHandler(w http.ResponseWriter, r *http.Request) {
@@ -27,10 +28,11 @@ func globalHandler(w http.ResponseWriter, r *http.Request) {
 
 func TestGlobal(t *testing.T) {
 	mt := myt{t}
-	eq, neq := mt.eq, mt.neq
-	_ = neq
+	eq := mt.eq
 
-	Global = NewCookieManagerOptions(NewInMemStore(), &CookieMngrOptions{AllowHTTP: true})
+	Global.Close()
+	Global = NewCookieManagerOptions(NewInMemStore(),
+		&CookieMngrOptions{AllowHTTP: true, CookieMaxAge: time.Hour})
 	defer Close()
 
 	server := httptest.NewServer(http.HandlerFunc(globalHandler))
@@ -49,5 +51,4 @@ func TestGlobal(t *testing.T) {
 		eq(strconv.Itoa(i%3), resp.Header.Get("test"))
 		resp.Body.Close()
 	}
-
 }
