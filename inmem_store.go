@@ -38,7 +38,7 @@ func NewInMemStore() Store {
 	return NewInMemStoreOptions(zeroInMemStoreOptions)
 }
 
-// NewInMemStore returns a new, in-memory session Store with the specified options.
+// NewInMemStoreOptions returns a new, in-memory session Store with the specified options.
 // The returned Store has an automatic session cleaner which runs
 // in its own goroutine.
 func NewInMemStoreOptions(o *InMemStoreOptions) Store {
