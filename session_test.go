@@ -28,7 +28,7 @@ func (m myt) neq(v1, v2 interface{}) {
 	}
 }
 
-func TestNew(t *testing.T) {
+func TestNewSession(t *testing.T) {
 	mt := myt{t}
 	eq, neq := mt.eq, mt.neq
 	ss := []Session{NewSession(), NewSessionOptions(&SessOptions{})}
@@ -45,7 +45,7 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestAttrs(t *testing.T) {
+func TestSessionAttrs(t *testing.T) {
 	mt := myt{t}
 	eq := mt.eq
 	s := NewSession()
