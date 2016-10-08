@@ -190,7 +190,7 @@ func (s *memcacheStore) Get(id string) Session {
 				// Service error? Retry..
 				continue
 			}
-			if e.Expires.After(time.Now()) {
+			if e.Expires.Before(time.Now()) {
 				// Session expired.
 				datastore.Delete(s.ctx, key) // Omitting error check...
 				return nil
