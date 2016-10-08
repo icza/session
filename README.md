@@ -64,7 +64,7 @@ The package provides support for Google App Engine (GAE) platform.
 
 The documentation doesn't include it (due to the `+build appengine` build constraint), but here it is: [gae_memcache_store.go](https://github.com/icza/session/blob/master/gae_memcache_store.go)
 
-The implementation stores sessions in the Memcache and also saves sessions to the Datastore as a backup
+The implementation stores sessions in the Memcache and also saves sessions in the Datastore as a backup
 in case data would be removed from the Memcache. This behaviour is optional, Datastore can be disabled completely.
 You can also choose whether saving to Datastore happens synchronously (in the same goroutine)
 or asynchronously (in another goroutine), resulting in faster response times.
