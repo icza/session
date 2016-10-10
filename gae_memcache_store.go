@@ -29,12 +29,13 @@ https://github.com/icza/session/blob/master/gae_session_demo/session_demo.go
 package session
 
 import (
-	"appengine"
-	"appengine/datastore"
-	"appengine/memcache"
 	"net/http"
 	"sync"
 	"time"
+
+	"appengine"
+	"appengine/datastore"
+	"appengine/memcache"
 )
 
 // A Google App Engine Memcache session store implementation.
@@ -46,9 +47,9 @@ type memcacheStore struct {
 
 	codec memcache.Codec // Codec used to marshal and unmarshal a Session to a byte slice
 
-	onlyMemcache      bool   // Tells if sessions are not to be saved in Datastore
-	syncDatastoreSave bool   // Tells if saving to Datastore should happen synchronously, in the same goroutine
-	dsEntityName      string // Name of the datastore entity to use to save sessions
+	onlyMemcache       bool   // Tells if sessions are not to be saved in Datastore
+	asyncDatastoreSave bool   // Tells if saving in Datastore should happen asynchronously, in a new goroutine
+	dsEntityName       string // Name of the datastore entity to use to save sessions
 
 	// Map of sessions (mapped from ID) that were accessed using this store; usually it will only be 1.
 	// It is also used as a cache, should the user call Get() with the same id multiple times.
@@ -79,12 +80,13 @@ type MemcacheStoreOptions struct {
 	// default value is false (which means to also save sessions in the Datastore)
 	OnlyMemcache bool
 
-	// Tells if saving to Datastore should happen synchronously (in the same goroutine, before returning),
-	// if false, session saving to Datastore will happen in the background (in another goroutine)
-	// which gives smaller latency (and is enough most of the times as Memcache is always checked first);
-	// default value is false which means to save sessions to Datastore in the background and return immedately
+	// Tells if saving in Datastore should happen asynchronously (in a new goroutine, possibly after returning),
+	// if false, session saving in Datastore will happen in the same goroutine, before returning from the request.
+	// Asynchronous saving gives smaller latency (and is enough most of the time as Memcache is always checked first);
+	// default value is false which means to save sessions in the Datastore in the same goroutine, synchronously
 	// Not used if OnlyMemcache=true.
-	SyncDatastoreSave bool
+	// FIXME: See https://github.com/icza/session/issues/3
+	AsyncDatastoreSave bool
 
 	// Name of the entity to use for saving sessions;
 	// default value is "sess_"
@@ -119,14 +121,14 @@ const defaultDSEntityName = "sess_" // Default value of DSEntityName.
 // which is bound to an http.Request, the returned Store can only be used for the lifetime of a request!
 func NewMemcacheStoreOptions(ctx appengine.Context, o *MemcacheStoreOptions) Store {
 	s := &memcacheStore{
-		ctx:               ctx,
-		keyPrefix:         o.KeyPrefix,
-		retries:           o.Retries,
-		onlyMemcache:      o.OnlyMemcache,
-		syncDatastoreSave: o.SyncDatastoreSave,
-		dsEntityName:      o.DSEntityName,
-		sessions:          make(map[string]Session, 2),
-		mux:               &sync.RWMutex{},
+		ctx:                ctx,
+		keyPrefix:          o.KeyPrefix,
+		retries:            o.Retries,
+		onlyMemcache:       o.OnlyMemcache,
+		asyncDatastoreSave: o.AsyncDatastoreSave,
+		dsEntityName:       o.DSEntityName,
+		sessions:           make(map[string]Session, 2),
+		mux:                &sync.RWMutex{},
 	}
 	if s.retries <= 0 {
 		s.retries = 3
@@ -281,10 +283,10 @@ func (s *memcacheStore) Close() {
 		return // Don't save to Datastore
 	}
 
-	if s.syncDatastoreSave {
-		s.saveToDatastore()
-	} else {
+	if s.asyncDatastoreSave {
 		go s.saveToDatastore()
+	} else {
+		s.saveToDatastore()
 	}
 }
 
