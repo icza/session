@@ -1,6 +1,6 @@
 # Session
 
-[![GoDoc](https://godoc.org/github.com/icza/session?status.svg)](https://godoc.org/github.com/icza/session) [![Go Report Card](https://goreportcard.com/badge/github.com/icza/session)](https://goreportcard.com/report/github.com/icza/session) [![Code Coverage](https://gocover.io/_badge/github.com/icza/session)](https://gocover.io/github.com/icza/session)
+[![GoDoc](https://godoc.org/github.com/icza/session?status.svg)](https://godoc.org/github.com/icza/session) [![Build Status](https://travis-ci.org/icza/session.svg?branch=master)](https://travis-ci.org/icza/session) [![Go Report Card](https://goreportcard.com/badge/github.com/icza/session)](https://goreportcard.com/report/github.com/icza/session) [![Code Coverage](https://gocover.io/_badge/github.com/icza/session)](https://gocover.io/github.com/icza/session)
 
 The [Go](https://golang.org/) standard library includes a nice [http server](https://golang.org/pkg/net/http/), but unfortunately it lacks a very basic and important feature: _HTTP session management_.
 
@@ -83,7 +83,7 @@ to do session-related tasks, something like this:
     sessmgr := session.NewCookieManager(session.NewMemcacheStore(ctx))
     defer sessmgr.Close() // This will ensure changes made to the session are auto-saved
                           // in Memcache (and optionally in the Datastore).
-    
+
     sess := sessmgr.Get(r) // Get current session
     if sess != nil {
         // Session exists, do something with it.
