@@ -206,6 +206,9 @@ func (s *sessionImpl) Created() time.Time {
 
 // Accessed is to implement Session.Accessed().
 func (s *sessionImpl) Accessed() time.Time {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
 	return s.AccessedF
 }
 
@@ -221,5 +224,8 @@ func (s *sessionImpl) Mutex() *sync.RWMutex {
 
 // Access is to implement Session.Access().
 func (s *sessionImpl) Access() {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
 	s.AccessedF = time.Now()
 }
