@@ -98,8 +98,8 @@ func (s *inMemStore) sessCleaner(interval time.Duration) {
 
 				for _, sess := range s.sessions {
 					if now.Sub(sess.Accessed()) > sess.Timeout() {
-						log.Println("Session timed out:", sess.Id())
-						delete(s.sessions, sess.Id())
+						log.Println("Session timed out:", sess.ID())
+						delete(s.sessions, sess.ID())
 					}
 				}
 			}()
@@ -126,8 +126,8 @@ func (s *inMemStore) Add(sess Session) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	log.Println("Session added:", sess.Id())
-	s.sessions[sess.Id()] = sess
+	log.Println("Session added:", sess.ID())
+	s.sessions[sess.ID()] = sess
 }
 
 // Remove is to implement Store.Remove().
@@ -135,8 +135,8 @@ func (s *inMemStore) Remove(sess Session) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	log.Println("Session removed:", sess.Id())
-	delete(s.sessions, sess.Id())
+	log.Println("Session removed:", sess.ID())
+	delete(s.sessions, sess.ID())
 }
 
 // Close is to implement Store.Close().

@@ -1,9 +1,10 @@
 package session
 
 import (
-	"github.com/icza/mighty"
 	"testing"
 	"time"
+
+	"github.com/icza/mighty"
 )
 
 func TestInMemStore(t *testing.T) {
@@ -17,11 +18,11 @@ func TestInMemStore(t *testing.T) {
 	s := NewSession()
 	st.Add(s)
 	time.Sleep(10 * time.Millisecond)
-	eq(s, st.Get(s.Id()))
+	eq(s, st.Get(s.ID()))
 	neq(s.Accessed(), s.Created())
 
 	st.Remove(s)
-	eq(nil, st.Get(s.Id()))
+	eq(nil, st.Get(s.ID()))
 }
 
 func TestInMemStoreSessCleaner(t *testing.T) {
@@ -32,11 +33,11 @@ func TestInMemStoreSessCleaner(t *testing.T) {
 
 	s := NewSessionOptions(&SessOptions{Timeout: 50 * time.Millisecond})
 	st.Add(s)
-	eq(s, st.Get(s.Id()))
+	eq(s, st.Get(s.ID()))
 
 	time.Sleep(30 * time.Millisecond)
-	eq(s, st.Get(s.Id()))
+	eq(s, st.Get(s.ID()))
 
 	time.Sleep(80 * time.Millisecond)
-	eq(nil, st.Get(s.Id()))
+	eq(nil, st.Get(s.ID()))
 }

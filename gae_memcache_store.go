@@ -225,8 +225,8 @@ func (s *memcacheStore) Add(sess Session) {
 	defer s.mux.Unlock()
 
 	if s.setMemcacheSession(sess) {
-		s.ctx.Infof("Session added: %s", sess.Id())
-		s.sessions[sess.Id()] = sess
+		s.ctx.Infof("Session added: %s", sess.ID())
+		s.sessions[sess.ID()] = sess
 		return
 	}
 }
@@ -234,7 +234,7 @@ func (s *memcacheStore) Add(sess Session) {
 // setMemcacheSession sets the specified session in the Memcache.
 func (s *memcacheStore) setMemcacheSession(sess Session) (success bool) {
 	item := &memcache.Item{
-		Key:        s.keyPrefix + sess.Id(),
+		Key:        s.keyPrefix + sess.ID(),
 		Object:     sess,
 		Expiration: sess.Timeout(),
 	}
@@ -246,7 +246,7 @@ func (s *memcacheStore) setMemcacheSession(sess Session) (success bool) {
 		}
 	}
 
-	s.ctx.Errorf("Failed to add session to memcache, id: %s, error: %v", sess.Id(), err)
+	s.ctx.Errorf("Failed to add session to memcache, id: %s, error: %v", sess.ID(), err)
 	return false
 }
 
@@ -257,18 +257,18 @@ func (s *memcacheStore) Remove(sess Session) {
 
 	var err error
 	for i := 0; i < s.retries; i++ {
-		if err = memcache.Delete(s.ctx, s.keyPrefix+sess.Id()); err == nil || err == memcache.ErrCacheMiss {
-			s.ctx.Infof("Session removed: %s", sess.Id())
-			delete(s.sessions, sess.Id())
+		if err = memcache.Delete(s.ctx, s.keyPrefix+sess.ID()); err == nil || err == memcache.ErrCacheMiss {
+			s.ctx.Infof("Session removed: %s", sess.ID())
+			delete(s.sessions, sess.ID())
 			if !s.onlyMemcache {
 				// Also from the Datastore:
-				key := datastore.NewKey(s.ctx, s.dsEntityName, sess.Id(), 0, nil)
+				key := datastore.NewKey(s.ctx, s.dsEntityName, sess.ID(), 0, nil)
 				datastore.Delete(s.ctx, key) // Omitting error check...
 			}
 			return
 		}
 	}
-	s.ctx.Errorf("Failed to remove session from memcache, id: %s, error: %v", sess.Id(), err)
+	s.ctx.Errorf("Failed to remove session from memcache, id: %s, error: %v", sess.ID(), err)
 }
 
 // Close is to implement Store.Close().
@@ -298,21 +298,21 @@ func (s *memcacheStore) saveToDatastore() {
 	for _, sess := range s.sessions {
 		value, err := s.codec.Marshal(sess)
 		if err != nil {
-			s.ctx.Errorf("Failed to marshal session: %s, error: %v", sess.Id(), err)
+			s.ctx.Errorf("Failed to marshal session: %s, error: %v", sess.ID(), err)
 			continue
 		}
 		e := SessEntity{
 			Expires: sess.Accessed().Add(sess.Timeout()),
 			Value:   value,
 		}
-		key := datastore.NewKey(s.ctx, s.dsEntityName, sess.Id(), 0, nil)
+		key := datastore.NewKey(s.ctx, s.dsEntityName, sess.ID(), 0, nil)
 		for i := 0; i < s.retries; i++ {
 			if _, err = datastore.Put(s.ctx, key, &e); err == nil {
 				break
 			}
 		}
 		if err != nil {
-			s.ctx.Errorf("Failed to save session to datastore: %s, error: %v", sess.Id(), err)
+			s.ctx.Errorf("Failed to save session to datastore: %s, error: %v", sess.ID(), err)
 		}
 	}
 }

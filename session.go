@@ -17,8 +17,8 @@ import (
 // Session is the (HTTP) session interface.
 // We can use it to store and retrieve constant and variable attributes from it.
 type Session interface {
-	// Id returns the id of the session.
-	Id() string
+	// ID returns the id of the session.
+	ID() string
 
 	// New tells if the session is new.
 	// Implementation is based on whether created and access times are equal.
@@ -71,7 +71,7 @@ type Session interface {
 // Session implementation.
 // Fields are exported so a session may be marshalled / unmarshalled.
 type sessionImpl struct {
-	IdF       string                 // Id of the session
+	IDF       string                 // ID of the session
 	CreatedF  time.Time              // Creation time
 	AccessedF time.Time              // Last accessed time
 	CAttrsF   map[string]interface{} // Constant attributes specified at session creation
@@ -98,7 +98,7 @@ type SessOptions struct {
 	// Byte-length of the information that builds up the session ids.
 	// Using Base-64 encoding, id length will be this multiplied by 4/3 chars.
 	// Default value is 18 (which means length of ID will be 24 chars).
-	IdLength int
+	IDLength int
 }
 
 // Pointer to zero value of SessOptions to be reused for efficiency.
@@ -113,7 +113,7 @@ func NewSession() Session {
 // NewSessionOptions creates a new Session with the specified options.
 func NewSessionOptions(o *SessOptions) Session {
 	now := time.Now()
-	idLength := o.IdLength
+	idLength := o.IDLength
 	if idLength <= 0 {
 		idLength = 18
 	}
@@ -123,7 +123,7 @@ func NewSessionOptions(o *SessOptions) Session {
 	}
 
 	sess := sessionImpl{
-		IdF:       genId(idLength),
+		IDF:       genID(idLength),
 		CreatedF:  now,
 		AccessedF: now,
 		AttrsF:    make(map[string]interface{}),
@@ -145,16 +145,16 @@ func NewSessionOptions(o *SessOptions) Session {
 	return &sess
 }
 
-// genId generates a secure, random session id using the crypto/rand package.
-func genId(length int) string {
+// genID generates a secure, random session id using the crypto/rand package.
+func genID(length int) string {
 	r := make([]byte, length)
 	io.ReadFull(rand.Reader, r)
 	return base64.URLEncoding.EncodeToString(r)
 }
 
-// Id is to implement Session.Id().
-func (s *sessionImpl) Id() string {
-	return s.IdF
+// ID is to implement Session.ID().
+func (s *sessionImpl) ID() string {
+	return s.IDF
 }
 
 // New is to implement Session.New().

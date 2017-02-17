@@ -16,7 +16,7 @@ import (
 type CookieManager struct {
 	store Store // Backing Store
 
-	sessIdCookieName string // Name of the cookie used for storing the session id
+	sessIDCookieName string // Name of the cookie used for storing the session id
 	cookieSecure     bool   // Tells if session ID cookies are to be sent only over HTTPS
 	cookieMaxAgeSec  int    // Max age for session ID cookies in seconds
 	cookiePath       string // Cookie path to use
@@ -26,7 +26,7 @@ type CookieManager struct {
 // All fields are optional; default value will be used for any field that has the zero value.
 type CookieMngrOptions struct {
 	// Name of the cookie used for storing the session id; default value is "sessid"
-	SessIdCookieName string
+	SessIDCookieName string
 
 	// Tells if session ID cookies are allowed to be sent over unsecure HTTP too (else only HTTPS);
 	// default value is false (only HTTPS)
@@ -53,12 +53,12 @@ func NewCookieManagerOptions(store Store, o *CookieMngrOptions) Manager {
 	m := &CookieManager{
 		store:            store,
 		cookieSecure:     !o.AllowHTTP,
-		sessIdCookieName: o.SessIdCookieName,
+		sessIDCookieName: o.SessIDCookieName,
 		cookiePath:       o.CookiePath,
 	}
 
-	if m.sessIdCookieName == "" {
-		m.sessIdCookieName = "sessid"
+	if m.sessIDCookieName == "" {
+		m.sessIDCookieName = "sessid"
 	}
 	if o.CookieMaxAge == 0 {
 		m.cookieMaxAgeSec = 30 * 24 * 60 * 60 // 30 days max age
@@ -74,7 +74,7 @@ func NewCookieManagerOptions(store Store, o *CookieMngrOptions) Manager {
 
 // Get is to implement Manager.Get().
 func (m *CookieManager) Get(r *http.Request) Session {
-	c, err := r.Cookie(m.sessIdCookieName)
+	c, err := r.Cookie(m.sessIDCookieName)
 	if err != nil {
 		return nil
 	}
@@ -89,8 +89,8 @@ func (m *CookieManager) Add(sess Session, w http.ResponseWriter) {
 	// MaxAge: to specify the max age of the cookie in seconds, else it's a session cookie and gets deleted after the browser is closed.
 
 	c := http.Cookie{
-		Name:     m.sessIdCookieName,
-		Value:    sess.Id(),
+		Name:     m.sessIDCookieName,
+		Value:    sess.ID(),
 		Path:     m.cookiePath,
 		HttpOnly: true,
 		Secure:   m.cookieSecure,
@@ -105,7 +105,7 @@ func (m *CookieManager) Add(sess Session, w http.ResponseWriter) {
 func (m *CookieManager) Remove(sess Session, w http.ResponseWriter) {
 	// Set the cookie with empty value and 0 max age
 	c := http.Cookie{
-		Name:     m.sessIdCookieName,
+		Name:     m.sessIDCookieName,
 		Value:    "",
 		Path:     m.cookiePath,
 		HttpOnly: true,

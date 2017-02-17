@@ -1,13 +1,14 @@
 package session
 
 import (
-	"github.com/icza/mighty"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/icza/mighty"
 )
 
 func globalHandler(w http.ResponseWriter, r *http.Request) {

@@ -2,10 +2,11 @@ package session
 
 import (
 	"encoding/base64"
-	"github.com/icza/mighty"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/icza/mighty"
 )
 
 func TestNewSession(t *testing.T) {
@@ -44,7 +45,7 @@ func TestSessOptions(t *testing.T) {
 	so := &SessOptions{
 		Attrs:    map[string]interface{}{"a": 1},
 		CAttrs:   map[string]interface{}{"ca": 2},
-		IdLength: 9,
+		IDLength: 9,
 		Timeout:  43 * time.Minute,
 	}
 
@@ -56,9 +57,9 @@ func TestSessOptions(t *testing.T) {
 		eq(v, s.CAttr(k))
 	}
 
-	data, err := base64.URLEncoding.DecodeString(s.Id())
+	data, err := base64.URLEncoding.DecodeString(s.ID())
 	eq(nil, err)
-	eq(so.IdLength, len(data))
+	eq(so.IDLength, len(data))
 
 	eq(so.Timeout, s.Timeout())
 }

@@ -11,11 +11,13 @@ Code demonstrates session access, creation and removal.
 package main
 
 import (
-	"appengine"
-	"github.com/icza/session"
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/icza/session"
+
+	"appengine"
 )
 
 func init() {
