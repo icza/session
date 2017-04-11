@@ -16,8 +16,7 @@ import (
 	"net/http"
 
 	"github.com/icza/session"
-
-	"appengine"
+	"google.golang.org/appengine"
 )
 
 func init() {
