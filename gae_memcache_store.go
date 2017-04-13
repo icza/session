@@ -179,7 +179,7 @@ func (s *memcacheStore) Get(id string) Session {
 			s.ctx.Errorf("Failed to get session from memcache, id: %s, error: %v", id, err)
 		}
 
-		// Ok, we didn't get it from Memcace (either was not there or Memcache service is unavailable).
+		// Ok, we didn't get it from Memcache (either was not there or Memcache service is unavailable).
 		// Now it's time to check in the Datastore.
 		key := datastore.NewKey(s.ctx, s.dsEntityName, id, 0, nil)
 		for i := 0; i < s.retries; i++ {
@@ -213,7 +213,7 @@ func (s *memcacheStore) Get(id string) Session {
 
 	// Yes! We have it! "Actualize" it.
 	sess.Access()
-	// Mutex is not marshalled, so create a new one:
+	// Mutex is not marshaled, so create a new one:
 	sess.mux = &sync.RWMutex{}
 	s.sessions[id] = sess
 	return sess
@@ -274,7 +274,7 @@ func (s *memcacheStore) Remove(sess Session) {
 // Close is to implement Store.Close().
 func (s *memcacheStore) Close() {
 	// Flush out sessions that were accessed from this store. No need locking, we're closing...
-	// We could use Cocec.SetMulti(), but sessions will contain at most 1 session like all the times.
+	// We could use Codec.SetMulti(), but sessions will contain at most 1 session like all the times.
 	for _, sess := range s.sessions {
 		s.setMemcacheSession(sess)
 	}
