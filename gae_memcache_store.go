@@ -213,10 +213,10 @@ func (s *memcacheStore) Get(id string) Session {
 		return nil
 	}
 
-	// Yes! We have it! "Actualize" it.
-	sess.Access()
 	// Mutex is not marshalled, so create a new one:
 	sess.mux = &sync.RWMutex{}
+	// Yes! We have it! "Actualize" it.
+	sess.Access()
 	s.sessions[id] = sess
 	return sess
 }
