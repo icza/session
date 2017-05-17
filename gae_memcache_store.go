@@ -214,7 +214,6 @@ func (s *memcacheStore) Get(id string) Session {
 	// Yes! We have it!
 	// "Actualize" it, but first, Mutex is not marshaled, so create a new one:
 	sess.mux = &sync.RWMutex{}
-
 	sess.Access()
 	s.sessions[id] = sess
 	return sess
