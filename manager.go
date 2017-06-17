@@ -28,4 +28,7 @@ type Manager interface {
 
 	// Close closes the session manager, releasing any resources that were allocated.
 	Close()
+
+	// GetStore get the store, as a manager has always a store
+	GetStore() Store
 }

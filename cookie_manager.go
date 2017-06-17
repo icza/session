@@ -126,6 +126,11 @@ func (m *CookieManager) Remove(sess Session, w http.ResponseWriter) {
 	m.store.Remove(sess)
 }
 
+// GetStore is to implement Manager.GetStore().
+func (m *CookieManager) GetStore() Store {
+	return m.store
+}
+
 // Close is to implement Manager.Close().
 func (m *CookieManager) Close() {
 	m.store.Close()
