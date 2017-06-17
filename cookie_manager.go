@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+const (
+	DEFAULT_SESSION_ID_COOKIE_NAME = "sessid"
+)
+
 // CookieManager is a secure, cookie based session Manager implementation.
 // Only the session ID is transmitted / stored at the clients, and it is managed using cookies.
 type CookieManager struct {
@@ -20,6 +24,11 @@ type CookieManager struct {
 	cookieSecure     bool   // Tells if session ID cookies are to be sent only over HTTPS
 	cookieMaxAgeSec  int    // Max age for session ID cookies in seconds
 	cookiePath       string // Cookie path to use
+}
+
+// GetSessionIdCookieName gets the cookie name used as session ID
+func (m *CookieManager) GetSessionIdCookieName() string {
+	return m.sessIDCookieName
 }
 
 // CookieMngrOptions defines options that may be passed when creating a new CookieManager.
@@ -44,32 +53,32 @@ var zeroCookieMngrOptions = new(CookieMngrOptions)
 
 // NewCookieManager creates a new, cookie based session Manager with default options.
 // Default values of options are listed in the CookieMngrOptions type.
-func NewCookieManager(store Store) Manager {
+func NewCookieManager(store Store) *CookieManager {
 	return NewCookieManagerOptions(store, zeroCookieMngrOptions)
 }
 
 // NewCookieManagerOptions creates a new, cookie based session Manager with the specified options.
-func NewCookieManagerOptions(store Store, o *CookieMngrOptions) Manager {
-	m := &CookieManager{
+func NewCookieManagerOptions(store Store, o *CookieMngrOptions) *CookieManager {
+	// Modify option to get real applied options
+	if o.SessIDCookieName == "" {
+		o.SessIDCookieName = DEFAULT_SESSION_ID_COOKIE_NAME
+	}
+
+	if o.CookiePath == "" {
+		o.CookiePath = "/"
+	}
+
+	if o.CookieMaxAge == 0 {
+		o.CookieMaxAge = time.Hour * 24 * 30 // 30 days max age
+	}
+
+	return &CookieManager{
 		store:            store,
 		cookieSecure:     !o.AllowHTTP,
 		sessIDCookieName: o.SessIDCookieName,
 		cookiePath:       o.CookiePath,
+		cookieMaxAgeSec:  int(o.CookieMaxAge.Seconds()),
 	}
-
-	if m.sessIDCookieName == "" {
-		m.sessIDCookieName = "sessid"
-	}
-	if o.CookieMaxAge == 0 {
-		m.cookieMaxAgeSec = 30 * 24 * 60 * 60 // 30 days max age
-	} else {
-		m.cookieMaxAgeSec = int(o.CookieMaxAge.Seconds())
-	}
-	if m.cookiePath == "" {
-		m.cookiePath = "/"
-	}
-
-	return m
 }
 
 // Get is to implement Manager.Get().
@@ -115,6 +124,11 @@ func (m *CookieManager) Remove(sess Session, w http.ResponseWriter) {
 	http.SetCookie(w, &c)
 
 	m.store.Remove(sess)
+}
+
+// GetStore is to implement Manager.GetStore().
+func (m *CookieManager) GetStore() Store {
+	return m.store
 }
 
 // Close is to implement Manager.Close().
