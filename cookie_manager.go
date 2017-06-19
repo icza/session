@@ -16,7 +16,7 @@ import (
 type CookieManager struct {
 	store Store // Backing Store
 
-	sessIDCookieName string // Name of the cookie used for storing the session id
+	sessIDCookieName string // Name of the cookie used for storing the session ID
 	cookieSecure     bool   // Tells if session ID cookies are to be sent only over HTTPS
 	cookieMaxAgeSec  int    // Max age for session ID cookies in seconds
 	cookiePath       string // Cookie path to use
@@ -25,7 +25,7 @@ type CookieManager struct {
 // CookieMngrOptions defines options that may be passed when creating a new CookieManager.
 // All fields are optional; default value will be used for any field that has the zero value.
 type CookieMngrOptions struct {
-	// Name of the cookie used for storing the session id; default value is "sessid"
+	// Name of the cookie used for storing the session ID; default value is "sessid"
 	SessIDCookieName string
 
 	// Tells if session ID cookies are allowed to be sent over unsecure HTTP too (else only HTTPS);
@@ -120,4 +120,24 @@ func (m *CookieManager) Remove(sess Session, w http.ResponseWriter) {
 // Close is to implement Manager.Close().
 func (m *CookieManager) Close() {
 	m.store.Close()
+}
+
+// SessIDCookieName returns the name of the cookie used for storing the session ID.
+func (m *CookieManager) SessIDCookieName() string {
+	return m.sessIDCookieName
+}
+
+// CookieSecure tells if session ID cookies are to be sent only over HTTPS.
+func (m *CookieManager) CookieSecure() bool {
+	return m.cookieSecure
+}
+
+// CookieMaxAgeSec returns the Max age for session ID cookies in seconds.
+func (m *CookieManager) CookieMaxAgeSec() int {
+	return m.cookieMaxAgeSec
+}
+
+// CookiePath returns the used cookie path.
+func (m *CookieManager) CookiePath() string {
+	return m.cookiePath
 }
