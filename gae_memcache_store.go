@@ -22,7 +22,7 @@ the session manager to which you passed the store (preferably with the defer sta
 
 Check out the GAE session demo application which shows how to use it properly:
 
-https://github.com/icza/session/blob/master/gae_session_demo/session_demo.go
+https://github.com/icza/session/blob/master/gae_session_demo/gae_session_demo.go
 
 */
 
@@ -33,11 +33,11 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/memcache"
-	"golang.org/x/net/context"
 	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/memcache"
 )
 
 // A Google App Engine Memcache session store implementation.
