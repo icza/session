@@ -7,6 +7,8 @@ An in-memory session store implementation.
 package session
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
 	"sync"
 	"time"
@@ -14,17 +16,26 @@ import (
 
 // In-memory session Store implementation.
 type inMemStore struct {
-	sessions    map[string]Session // Map of sessions (mapped from ID)
-	mux         *sync.RWMutex      // mutex to synchronize access to sessions
-	ticker      *time.Ticker       // Ticker for the session cleaner
-	closeTicker chan struct{}      // Channel to signal close for the session cleaner
+	sessions    map[string]Session     // Map of sessions (mapped from ID)
+	mux         *sync.RWMutex          // mutex to synchronize access to sessions
+	ticker      *time.Ticker           // Ticker for the session cleaner
+	closeTicker chan struct{}          // Channel to signal close for the session cleaner
+	logPrintln  func(v ...interface{}) // Function used to log session lifecycle events (e.g. added, removed, timed out).
 }
+
+// NoopLogger that may be used as InMemStoreOptions.Logger to disable logging.
+var NoopLogger = log.New(ioutil.Discard, "", 0)
 
 // InMemStoreOptions defines options that may be passed when creating a new in-memory Store.
 // All fields are optional; default value will be used for any field that has the zero value.
 type InMemStoreOptions struct {
 	// Session cleaner check interval, default is 10 seconds.
 	SessCleanerInterval time.Duration
+
+	// Logger to log session lifecycle events (e.g. added, removed, timed out).
+	// Default is to use the global functions of the log package.
+	// To disable logging, you may use NoopLogger.
+	Logger *log.Logger
 }
 
 // Pointer to zero value of InMemStoreOptions to be reused for efficiency.
@@ -46,6 +57,14 @@ func NewInMemStoreOptions(o *InMemStoreOptions) Store {
 		sessions:    make(map[string]Session),
 		mux:         &sync.RWMutex{},
 		closeTicker: make(chan struct{}),
+	}
+
+	output := log.Output
+	if o.Logger != nil {
+		output = o.Logger.Output
+	}
+	s.logPrintln = func(v ...interface{}) {
+		output(3, fmt.Sprintln(v...))
 	}
 
 	interval := o.SessCleanerInterval
@@ -98,7 +117,7 @@ func (s *inMemStore) sessCleaner(interval time.Duration) {
 
 				for _, sess := range s.sessions {
 					if now.Sub(sess.Accessed()) > sess.Timeout() {
-						log.Println("Session timed out:", sess.ID())
+						s.logPrintln("Session timed out:", sess.ID())
 						delete(s.sessions, sess.ID())
 					}
 				}
@@ -126,7 +145,7 @@ func (s *inMemStore) Add(sess Session) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	log.Println("Session added:", sess.ID())
+	s.logPrintln("Session added:", sess.ID())
 	s.sessions[sess.ID()] = sess
 }
 
@@ -135,7 +154,7 @@ func (s *inMemStore) Remove(sess Session) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	log.Println("Session removed:", sess.ID())
+	s.logPrintln("Session removed:", sess.ID())
 	delete(s.sessions, sess.ID())
 }
 

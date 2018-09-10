@@ -1,6 +1,8 @@
 package session
 
 import (
+	"log"
+	"os"
 	"testing"
 	"time"
 
@@ -28,7 +30,10 @@ func TestInMemStore(t *testing.T) {
 func TestInMemStoreSessCleaner(t *testing.T) {
 	eq := mighty.Eq(t)
 
-	st := NewInMemStoreOptions(&InMemStoreOptions{SessCleanerInterval: 10 * time.Millisecond})
+	st := NewInMemStoreOptions(&InMemStoreOptions{
+		SessCleanerInterval: 10 * time.Millisecond,
+		Logger:              log.New(os.Stderr, "test~", log.LstdFlags|log.Llongfile),
+	})
 	defer st.Close()
 
 	s := NewSessionOptions(&SessOptions{Timeout: 50 * time.Millisecond})
