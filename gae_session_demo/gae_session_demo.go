@@ -1,5 +1,3 @@
-// +build appengine
-
 /*
 This is a session demo application that can be run on Google AppEngine platform.
 You can also try it locally by running 'goapp serve' from this folder.

@@ -1,5 +1,3 @@
-// +build appengine
-
 /*
 
 A Google App Engine Memcache session store implementation.
@@ -33,11 +31,11 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/memcache"
-	"golang.org/x/net/context"
 	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/memcache"
 )
 
 // A Google App Engine Memcache session store implementation.
